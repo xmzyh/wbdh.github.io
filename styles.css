@@ -126,8 +126,8 @@ h1 {
 }
 /* 当天日期显示样式 */
 .current-date {
-    font-size: 18px;
-    color: #8892b0;
+    font-size:: 25px;
+    color: #ffffff;
     text-align: center;
     margin-bottom: 20px;
     letter-spacing: 1px;
