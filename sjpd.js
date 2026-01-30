@@ -9,14 +9,59 @@ function formatTime(num) {
 
 /**
  * 格式化日期（年-月-日）
+ * @param {Date} date 日期对象，不传则默认当前日期
  * @returns {string} 格式化后的日期字符串，如：2026年01月31日
  */
-function formatCurrentDate() {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = formatTime(now.getMonth() + 1); // 月份从0开始，需+1
-    const day = formatTime(now.getDate());
+function formatDate(date = new Date()) {
+    const year = date.getFullYear();
+    const month = formatTime(date.getMonth() + 1); // 月份从0开始，需+1
+    const day = formatTime(date.getDate());
     return `${year}年${month}月${day}日`;
+}
+
+/**
+ * 获取GitHub文件的最新提交时间
+ * @returns {Promise<Date|null>} 最新提交的日期对象，失败则返回null
+ */
+async function getLatestCommitDate() {
+    const apiUrl = 'https://api.github.com/repos/xmzyh/wbdh.github.io/commits/main?path=config.js';
+    try {
+        // 发起请求获取最新提交信息（添加缓存控制，避免频繁请求）
+        const response = await fetch(apiUrl, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/vnd.github.v3+json',
+                'Cache-Control': 'max-age=300' // 5分钟缓存，减轻GitHub API压力
+            }
+        });
+
+        if (!response.ok) {
+            console.error('获取提交记录失败：', response.status);
+            return null;
+        }
+
+        const commitData = await response.json();
+        // 解析提交时间（GitHub返回的是ISO格式字符串）
+        const commitTime = new Date(commitData.commit.committer.date);
+        return commitTime;
+    } catch (error) {
+        console.error('获取提交记录出错：', error);
+        return null;
+    }
+}
+
+/**
+ * 判断日期是否为当天（00:00-24:00）
+ * @param {Date} date 要判断的日期
+ * @returns {boolean} 是否为当天
+ */
+function isToday(date) {
+    const today = new Date();
+    return (
+        date.getFullYear() === today.getFullYear() &&
+        date.getMonth() === today.getMonth() &&
+        date.getDate() === today.getDate()
+    );
 }
 
 /**
@@ -54,12 +99,26 @@ function getCountdownConfig() {
 
 /**
  * 更新倒计时和日期显示
+ * @param {Date|null} latestCommitDate 最新提交日期（可选）
  */
-function updateCountdown() {
-    // 1. 更新日期显示
+function updateCountdown(latestCommitDate = null) {
+    // 1. 确定要显示的日期
+    let displayDate;
+    if (latestCommitDate && isToday(latestCommitDate)) {
+        // 如果当天有更新，显示当天日期
+        displayDate = new Date();
+    } else if (latestCommitDate) {
+        // 如果没有当天更新，显示最后一次提交的日期
+        displayDate = latestCommitDate;
+    } else {
+        // 获取提交记录失败时，默认显示当天日期
+        displayDate = new Date();
+    }
+
+    // 更新日期显示
     const dateElement = document.getElementById('currentDate');
     if (dateElement) {
-        dateElement.textContent = formatCurrentDate();
+        dateElement.textContent = formatDate(displayDate);
     }
 
     // 2. 更新倒计时显示
@@ -89,7 +148,27 @@ function updateCountdown() {
 /**
  * 初始化倒计时（每秒更新）
  */
-function initCountdown() {
-    updateCountdown(); // 立即更新
-    setInterval(updateCountdown, 1000); // 每秒刷新
+async function initCountdown() {
+    // 第一步：获取最新提交日期
+    const latestCommitDate = await getLatestCommitDate();
+    
+    // 第二步：立即更新一次（带提交日期参数）
+    updateCountdown(latestCommitDate);
+    
+    // 第三步：每秒刷新（复用最新提交日期，避免频繁请求GitHub API）
+    setInterval(() => {
+        updateCountdown(latestCommitDate);
+    }, 1000);
+
+    // 可选：每30分钟重新检测一次提交记录（更新最新日期）
+    setInterval(async () => {
+        const newLatestCommitDate = await getLatestCommitDate();
+        // 仅当提交日期变化时更新（优化性能）
+        if (
+            (!latestCommitDate && newLatestCommitDate) ||
+            (latestCommitDate && newLatestCommitDate && latestCommitDate.getTime() !== newLatestCommitDate.getTime())
+        ) {
+            latestCommitDate = newLatestCommitDate;
+        }
+    }, 30 * 60 * 1000); // 30分钟刷新一次提交记录
 }
