@@ -116,7 +116,7 @@ body::after {
     100% { left: 150%; transform: skewX(-20deg); }
 }
 h1 { 
-    font-size: 40px; 
+    font-size: 30px; 
     color: #268bff;
     text-align: center; 
     margin-bottom: 8px;
@@ -135,13 +135,13 @@ h1 {
     text-align: center;
 }
 .countdown-label {
-    font-size: 30px;
+    font-size: 20px;
     color: #8892b0;
     margin-bottom: 10px;
     display: block;
 }
 .countdown-value {
-    font-size: 38px;
+    font-size: 30px;
     color: #64d8f7;
     font-weight: 600;
     text-shadow: 0 0 15px rgba(100, 216, 247, 0.4);
@@ -360,7 +360,7 @@ h1 {
 }
 @media (max-width: 480px) {
     .container { padding: 30px 20px; }
-    h1 { font-size: 40px; }
+    h1 { font-size: 30px; }
     .countdown-panel { padding: 16px 15px; }
     .countdown-value { font-size: 22px; letter-spacing: 2px; }
     #generateBtn { height: 52px; font-size: 16px; }
