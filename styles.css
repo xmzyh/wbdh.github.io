@@ -138,7 +138,7 @@ h1 {
 /* 移动端适配 */
 @media (max-width: 480px) {
     .current-date {
-        font-size: 16px;
+        font-size:: 20px;
         margin-bottom: 6px; /* 同步缩小移动端间距 */
     }
 }
