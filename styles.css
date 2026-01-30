@@ -12,6 +12,9 @@ body {
     position: relative;
     overflow-x: hidden;
     z-index: 1; /* 核心调整：避免body被底层遮挡 */
+    /* 跨端兼容性：确保body高度和宽度在所有设备上一致 */
+    width: 100%;
+    height: 100%;
 }
 /* 新增：用伪元素承载背景图，兼容所有手机的fixed固定效果 */
 body::before {
@@ -48,11 +51,11 @@ body::after {
     animation: gridRotate 20s linear infinite;
     transform-origin: center center;
 }
-/* 彻底移除黑色蒙版，只保留背景图和网格效果 */
+/* 彻底移除黑色蒙版，背景更通透 */
 .container { 
     width: 100%;
     /* 核心优化：移除黑色蒙版，背景更通透 */
-    background: rgba(12, 34, 78, 0.5);
+    background: rgba(12, 34, 78, 0.7);
     backdrop-filter: blur(15px);
     border: 1px solid rgba(38, 139, 255, 0.3);
     border-radius: 20px;
@@ -64,6 +67,8 @@ body::after {
     z-index: 2; /* 确保内容框在最上层 */
     /* 新增：添加轻微阴影，增强层次感 */
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    /* 跨端兼容性：确保容器在所有设备上高度一致 */
+    height: 100%;
 }
 .container .neon-border {
     position: absolute;
@@ -116,6 +121,15 @@ h1 {
     text-align: center; 
     margin-bottom: 8px;
     text-shadow: 0 0 20px rgba(38, 139, 255, 0.4);
+    position: relative;
+    z-index: 1;
+}
+h2 { 
+    font-size: 16px; 
+    color: #8892b0;
+    text-align: center; 
+    margin-bottom: 25px;
+    font-weight: 400;
     position: relative;
     z-index: 1;
 }
