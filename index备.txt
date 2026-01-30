@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>汪贝付款直链二维码</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Microsoft YaHei", sans-serif; }
+        body { max-width: 600px; margin: 30px auto; padding: 0 20px; background: #f5f5f5; }
+        .container { background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { font-size: 32px; color: #e64340; text-align: center; margin-bottom: 15px; }
+        h2 { font-size: 20px; color: #e64340; text-align: center; margin-bottom: 15px;}
+        #generateBtn { width: 100%; height: 48px; background: #e64340; color: #fff; border: none; border-radius: 6px; font-size: 17px; cursor: pointer; transition: background 0.2s; }
+        #generateBtn:hover { background: #d93633; }
+        .goods-item { padding: 25px; border: 1px solid #eee; border-radius: 8px; margin-bottom: 25px; text-align: center; }
+        .goods-name { font-size: 16px; font-weight: 500; color: #333; margin-bottom: 20px; line-height: 1.4; }
+        .qrcode-box { width: 180px; height: 180px; margin: 0 auto; border: 1px solid #eee; padding: 8px; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+        .qrcode-box:hover { box-shadow: 0 0 8px rgba(0,0,0,0.1); }
+        .empty-tip { text-align: center; font-size: 18px; color: #666; padding: 60px 0; }
+        .copy-success { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); color: #fff; padding: 12px 24px; border-radius: 6px; font-size: 14px; display: none; z-index: 999; }
+        .param-tip { color: #ff9900; font-size: 13px; margin-bottom: 15px; padding: 8px; background: #fff9e6; border-radius: 4px; border: 1px solid #ffe8b3; display: inline-block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1> 汪贝付款直链二维码</h1>
+        <h2> 场次：2026/01/29 14场</h2>
+        <button id="generateBtn">获取本场商品（码已更新）</button>
+        <div id="resultArea"></div>
+        <div class="copy-success" id="copySuccess">二维码对应链接复制成功！</div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const generateBtn = document.getElementById('generateBtn');
+            const resultArea = document.getElementById('resultArea');
+            const copySuccess = document.getElementById('copySuccess');
+
+            /************************** 【数据替换标记Start】**************************/
+            const innerGoodsData = {"code":"0","success":true,"data":{"floorData":{"uniqId":"d77d7d70-4496-41ff-bf72-8e7c34892bf0","name":"福利专区秒杀楼层","floorType":"SCORE_FLASH_SALE_FLOOR","items":[{"productList":[{"uniqId":"b0df0fbf-d56e-49c2-b6c3-fb8d1dec8ef0","activityId":1455515,"rewardImg":"https://m.360buyimg.com/n1/jfs/t1/332664/40/15173/675620/68cd0680F6e3f7c5e/4a9fb5657af0afc4.png","rewardName":"原味瓜子1袋","skuId":"100282523800","exchangeRate":99,"payAmount":"1.5","canExchange":true,"jumpUrl":"https://m-sep.jd.com/ProductDetail?businessType=119501&activityId=1455515&skuId=100282523800","salePrice":"11.90","startTime":1769666400000,"endTime":1769677200000,"showStartTime":1769616000000,"showEndTime":1769677200000,"subscribeStatus":0,"token":"0DB12887B7D16F664BA5653B953AE41DB4B3448CF05BAD9D475D121D24988E85DA78380AF193787ED9238F0B87AE5A1952468F0A34F19DA785E5FF740860A9649F50A47BEE80DCD49E0AE7448AEB3EBF1AE6F8E4051EDDD7D2F24B08423066EE990BFD7FD8BC4C31AB4ECF7D69268553","saleStartTime":14,"isSelfService":"1"},{"uniqId":"36e58305-6dba-4620-8b6b-da808e3051dc","activityId":1455515,"rewardImg":"https://m.360buyimg.com/n1/jfs/t1/386630/5/3847/57694/6960672eFb12e814f/a587f06241ed6c84.png","rewardName":"徐福记沙琪玛1袋","skuId":"100137924664","exchangeRate":99,"payAmount":"1.9","canExchange":true,"jumpUrl":"https://m-sep.jd.com/ProductDetail?businessType=119501&activityId=1455515&skuId=100137924664","salePrice":"19.90","startTime":1769666400000,"endTime":1769677200000,"showStartTime":1769616000000,"showEndTime":1769677200000,"subscribeStatus":0,"token":"0DB12887B7D16F664BA5653B953AE41DB4B3448CF05BAD9D475D121D24988E85DA78380AF193787ED9238F0B87AE5A19685E1B589AB713D16F829C088F2FB17367AEA01F1C9DF6268E9A9E31DDF4749DE417E161087648B484FBCD99FED1D84FC8039F9E27B4AD22FDE9674E2E238C73FD3115869A9AE11F3A619BE34A1DA45E","saleStartTime":14,"isSelfService":"1"},{"uniqId":"6c9ff237-fef4-444c-8879-21f656d2557c","activityId":1455515,"rewardImg":"https://m.360buyimg.com/n1/jfs/t1/381138/12/12426/110752/6954e836F0ce7c47c/73a9c466eadfd966.png","rewardName":"健力宝6罐","skuId":"100067742303","exchangeRate":99,"payAmount":"3.9","canExchange":true,"jumpUrl":"https://m-sep.jd.com/ProductDetail?businessType=119501&activityId=1455515&skuId=100067742303","salePrice":"24.90","startTime":1769666400000,"endTime":1769677200000,"showStartTime":1769616000000,"showEndTime":1769677200000,"subscribeStatus":0,"token":"0DB12887B7D16F664BA5653B953AE41DB4B3448CF05BAD9D475D121D24988E85DA78380AF193787ED9238F0B87AE5A19532AC5B5EE5A3D67DFD840CAF2EB04F97D83CFA2A0A244CBA14EE3984FDB030B8132B6AD0E1E83C8D920ACB425BB8D9271FB6C0D62BB8925A86F7747BB3F2F2F","saleStartTime":14,"isSelfService":"1"},{"uniqId":"12b0c932-87a2-4e89-8ffd-e562183dc7e4","activityId":1455515,"rewardImg":"https://m.360buyimg.com/n1/jfs/t1/150326/35/31268/72829/643791f8Fc561bafa/b931345fd7cc4c8a.png","rewardName":"奥妙洗衣液2斤","skuId":"100138810059","exchangeRate":99,"payAmount":"3.9","canExchange":true,"jumpUrl":"https://m-sep.jd.com/ProductDetail?businessType=119501&activityId=1455515&skuId=100138810059","salePrice":"16.90","startTime":1769666400000,"endTime":1769677200000,"showStartTime":1769616000000,"showEndTime":1769677200000,"subscribeStatus":0,"token":"0DB12887B7D16F664BA5653B953AE41DB4B3448CF05BAD9D475D121D24988E85DA78380AF193787ED9238F0B87AE5A1921542DD0535E95C82F8805FFB4F15D3BBB7186E968A5489A38AEFA18756E52DB83AE9A986AAB43010258FD0BAD0DAF3CDBAB71355F55913AB814B2A1E948D8B43A3F6DE968302898E8214213F3CA7E5C","saleStartTime":14,"isSelfService":"1"},{"uniqId":"33270acf-60fe-444d-849f-2e6d3092a2f2","activityId":1455515,"rewardImg":"https://m.360buyimg.com/n1/jfs/t1/362848/29/7072/80056/692cee35F3fd6d9e1/79beadfbbabb5e5f.png","rewardName":"白砂糖3袋","skuId":"100294335434","exchangeRate":99,"payAmount":"4.9","canExchange":true,"jumpUrl":"https://m-sep.jd.com/ProductDetail?businessType=119501&activityId=1455515&skuId=100294335434","salePrice":"23.90","startTime":1769666400000,"endTime":1769677200000,"showStartTime":1769616000000,"showEndTime":1769677200000,"subscribeStatus":0,"token":"0DB12887B7D16F664BA5653B953AE41DB4B3448CF05BAD9D475D121D24988E85DA78380AF193787ED9238F0B87AE5A19A1F5AA6310DD4FE0328FE076C2013ABAB99CB27C5BC6EE1BCF427D92CBAAEA9D271FF6BEDF69AE7517CA814D1226CC0DECCA50C2FF6BB3C581F635DF25EABBE0","saleStartTime":14,"isSelfService":"1"},{"uniqId":"a95aeb70-e743-4823-98ff-9c3ab837bf87","activityId":1455515,"rewardImg":"https://m.360buyimg.com/n1/jfs/t1/87479/26/19043/330270/61400f84Ed391a977/14d11c33d0ba5626.png","rewardName":" 胡姬花400ml","skuId":"100014365067","exchangeRate":99,"payAmount":"6.9","canExchange":true,"jumpUrl":"https://m-sep.jd.com/ProductDetail?businessType=119501&activityId=1455515&skuId=100014365067","salePrice":"19.90","startTime":1769666400000,"endTime":1769677200000,"showStartTime":1769616000000,"showEndTime":1769677200000,"subscribeStatus":0,"token":"0DB12887B7D16F664BA5653B953AE41DB4B3448CF05BAD9D475D121D24988E85DA78380AF193787ED9238F0B87AE5A198C31AE34C26271D5C9A5CC9F5636263E3B80655F7E03B4C8FA674AED65985CAE882906B024A032ADC70E1DB0C727D9FE7AFCC98523794BF8385344D9840074F1","saleStartTime":14,"isSelfService":"1"}]}]
+                }}
+            };
+            /************************** 【数据替换标记End】**************************/
+
+            console.log('内置商品数据：', innerGoodsData);
+            console.log('商品列表：', innerGoodsData?.data?.floorData?.items?.[0]?.productList);
+
+            function parseGoods() {
+                const goodsList = [];
+                const productList = innerGoodsData?.data?.floorData?.items?.[0]?.productList || [];
+                if (productList.length === 0) {
+                    console.error('未获取到商品列表，检查数据层级！');
+                    return goodsList;
+                }
+                
+                productList.forEach(item => {
+                    // 核心修改：缺失businessType时自动填充为119501
+                    let businessType = '';
+                    if (item.jumpUrl) {
+                        const reg = /businessType=([^&]+)/;
+                        const match = item.jumpUrl.match(reg);
+                        businessType = match ? match[1] : '119501';
+                    } else {
+                        businessType = '119501';
+                    }
+
+                    const params = { 
+                        businessType: businessType,  // 赋值处理后的businessType
+                        activityId: item.activityId || '', 
+                        skuId: item.skuId || '' 
+                    };
+
+                    const baseUrl = 'https://m-sep.jd.com/Settlement?showhead=no';
+                    const query = Object.entries(params).filter(([k, v]) => v).map(([k, v]) => `${k}=${v}`).join('&');
+                    const targetUrl = query ? `${baseUrl}&${query}` : baseUrl;
+
+                    goodsList.push({
+                        name: item.rewardName || '未知商品',
+                        params: params,
+                        targetUrl: targetUrl
+                    });
+                });
+                return goodsList;
+            }
+
+            function copyLink(url) {
+                navigator.clipboard.writeText(url).then(() => showCopyTip())
+                .catch(() => {
+                    const input = document.createElement('input');
+                    input.value = url;
+                    document.body.appendChild(input);
+                    input.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(input);
+                    showCopyTip();
+                });
+            }
+
+            function showCopyTip() {
+                copySuccess.style.display = 'block';
+                setTimeout(() => copySuccess.style.display = 'none', 1500);
+            }
+
+            function renderQrcode(goodsList) {
+                resultArea.innerHTML = '';
+                if (goodsList.length === 0) {
+                    resultArea.innerHTML = '<div class="empty-tip">未提取到有效商品信息，请检查内置数据！</div>';
+                    return;
+                }
+
+                goodsList.forEach((goods, index) => {
+                    const goodsItem = document.createElement('div');
+                    goodsItem.className = 'goods-item';
+
+                    const nameDiv = document.createElement('div');
+                    nameDiv.className = 'goods-name';
+                    nameDiv.innerText = `${index + 1}、${goods.name}`;
+                    goodsItem.appendChild(nameDiv);
+
+                    // 仅提示activityId/skuId缺失，businessType已自动填充，不再提示
+                    const lackParams = [];
+                    if (!goods.params.activityId) lackParams.push('activityId');
+                    if (!goods.params.skuId) lackParams.push('skuId');
+                    if (lackParams.length > 0) {
+                        const tipDiv = document.createElement('div');
+                        tipDiv.className = 'param-tip';
+                        tipDiv.innerText = `缺失参数：${lackParams.join('、')}（二维码可能无效）`;
+                        goodsItem.appendChild(tipDiv);
+                    }
+
+                    const qrBox = document.createElement('div');
+                    qrBox.className = 'qrcode-box';
+                    qrBox.id = `qrcode_${index}`;
+                    qrBox.onclick = () => copyLink(goods.targetUrl);
+                    goodsItem.appendChild(qrBox);
+
+                    resultArea.appendChild(goodsItem);
+
+                    new QRCode(document.getElementById(`qrcode_${index}`), {
+                        text: goods.targetUrl,
+                        width: 160,
+                        height: 160,
+                        colorDark: '#000000',
+                        colorLight: '#ffffff',
+                        correctLevel: QRCode.CorrectLevel.M
+                    });
+                });
+            }
+
+            let isGenerating = false;
+            generateBtn.addEventListener('click', function() {
+                if (isGenerating) return;
+                isGenerating = true;
+                try {
+                    const goodsList = parseGoods();
+                    renderQrcode(goodsList);
+                } catch (e) {
+                    console.error('生成失败：', e);
+                    alert(`解析失败：${e.message}`);
+                } finally {
+                    isGenerating = false;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

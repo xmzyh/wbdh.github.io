@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>汪贝付款直链二维码</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="neon-border"></div>
+        <div class="light-sweep"></div>
+        <h1>汪贝付款直链二维码</h1>
+        <!-- 单一场次倒计时面板（核心修改） -->
+        <div class="countdown-panel">
+            <span class="countdown-label" id="countdownLabel">距离本场开始剩余</span>
+            <div class="countdown-value" id="countdownValue">00:00:00</div>
+        </div>
+        <button id="generateBtn">
+            <span class="btn-loading-icon"></span>
+            <span class="btn-text">获取本场商品（码已更新）</span>
+        </button>
+        <div id="resultArea"></div>
+        <div class="copy-success" id="copySuccess">二维码对应链接复制成功！</div>
+    </div>
+
+    <!-- 引入二维码生成库 -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <!-- 1. 全局变量定义 -->
+    <script src="config.js"></script>
+
+    <!-- 商品解析模块（保持不变） -->
+    <script src="spjx.js"></script>
+
+    <!-- 二维码渲染与复制功能（保持不变） -->
+    <script src="ewm.js"></script>
+
+    <!-- 按钮交互事件（保持不变） -->
+    <script src="an.js"></script>
+
+    <!-- 核心：时段判断+单倒计时逻辑（按要求重写） -->
+    <script src="sjpd.js"></script>
+
+    <!-- 页面初始化（修改） -->
+    <script>
+        function initPage() {
+            // 获取DOM元素
+            generateBtn = document.getElementById('generateBtn');
+            resultArea = document.getElementById('resultArea');
+            copySuccess = document.getElementById('copySuccess');
+            btnText = document.querySelector('.btn-text');
+            countdownLabel = document.getElementById('countdownLabel');
+            countdownValue = document.getElementById('countdownValue');
+            
+            // 初始化倒计时和事件
+            initCountdown();
+            initEventListeners();
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', initPage);
+    </script>
+</body>
+</html>
