@@ -33,10 +33,10 @@
                 return { label: '距离14:00场结束剩余', target: target17 };
             } else if (hours >= 17 && hours < 20) {
                 // 17:00-20:00：距离本场开始剩余 → 目标20点
-                return { label: '距离17:00场开始剩余', target: target20 };
+                return { label: '距离20:00场开始剩余', target: target20 };
             } else {
                 // 20:00-24:00：距离本场开始剩余 → 目标次日14点
-                return { label: '距离17:00场开始剩余', target: targetNext14 };
+                return { label: '距离20:00场开始剩余', target: targetNext14 };
             }
         }
 
