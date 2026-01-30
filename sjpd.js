@@ -20,32 +20,32 @@ function formatDate(date = new Date()) {
 }
 
 /**
- * 获取GitHub文件的最新提交时间
+ * 获取an.js文件的最新提交时间（精准获取文件专属提交）
  * @returns {Promise<Date|null>} 最新提交的日期对象，失败则返回null
  */
-async function getLatestCommitDate() {
-    const apiUrl = 'https://api.github.com/repos/xmzyh/wbdh.github.io/commits/main?path=an.js';
+async function getLatestAnJsCommitDate() {
+    // 使用GitHub内容API，精准获取an.js的元数据
+    const apiUrl = 'https://api.github.com/repos/xmzyh/wbdh.github.io/contents/an.js?ref=main';
     try {
-        // 发起请求获取最新提交信息（添加缓存控制，避免频繁请求）
         const response = await fetch(apiUrl, {
             method: 'GET',
             headers: {
                 'Accept': 'application/vnd.github.v3+json',
-                'Cache-Control': 'max-age=300' // 5分钟缓存，减轻GitHub API压力
+                'Cache-Control': 'max-age=300' // 5分钟缓存，避免API限流
             }
         });
 
         if (!response.ok) {
-            console.error('获取提交记录失败：', response.status);
+            console.error('获取an.js元数据失败：', response.status);
             return null;
         }
 
-        const commitData = await response.json();
-        // 解析提交时间（GitHub返回的是ISO格式字符串）
-        const commitTime = new Date(commitData.commit.committer.date);
+        const fileData = await response.json();
+        // 解析文件最后提交的时间（GitHub返回ISO格式字符串）
+        const commitTime = new Date(fileData.commit.commit.author.date);
         return commitTime;
     } catch (error) {
-        console.error('获取提交记录出错：', error);
+        console.error('获取an.js提交记录出错：', error);
         return null;
     }
 }
@@ -99,19 +99,19 @@ function getCountdownConfig() {
 
 /**
  * 更新倒计时和日期显示
- * @param {Date|null} latestCommitDate 最新提交日期（可选）
+ * @param {Date|null} latestCommitDate an.js最新提交日期
  */
 function updateCountdown(latestCommitDate = null) {
-    // 1. 确定要显示的日期
+    // 1. 确定要显示的日期（核心规则）
     let displayDate;
     if (latestCommitDate && isToday(latestCommitDate)) {
-        // 如果当天有更新，显示当天日期
+        // 当天有更新 → 显示当天日期
         displayDate = new Date();
     } else if (latestCommitDate) {
-        // 如果没有当天更新，显示最后一次提交的日期
+        // 当天无更新 → 显示最后一次提交的日期
         displayDate = latestCommitDate;
     } else {
-        // 获取提交记录失败时，默认显示当天日期
+        // 获取提交记录失败 → 降级显示当天日期
         displayDate = new Date();
     }
 
@@ -121,7 +121,7 @@ function updateCountdown(latestCommitDate = null) {
         dateElement.textContent = formatDate(displayDate);
     }
 
-    // 2. 更新倒计时显示
+    // 2. 更新倒计时显示（原有逻辑不变）
     const { label, target } = getCountdownConfig();
     const now = new Date();
     let diff = target - now; // 时间差（毫秒）
@@ -149,26 +149,26 @@ function updateCountdown(latestCommitDate = null) {
  * 初始化倒计时（每秒更新）
  */
 async function initCountdown() {
-    // 第一步：获取最新提交日期
-    const latestCommitDate = await getLatestCommitDate();
+    // 第一步：先获取an.js最新提交时间
+    const latestAnJsCommitDate = await getLatestAnJsCommitDate();
     
     // 第二步：立即更新一次（带提交日期参数）
-    updateCountdown(latestCommitDate);
+    updateCountdown(latestAnJsCommitDate);
     
-    // 第三步：每秒刷新（复用最新提交日期，避免频繁请求GitHub API）
+    // 第三步：每秒刷新倒计时（复用提交日期，避免频繁请求API）
     setInterval(() => {
-        updateCountdown(latestCommitDate);
+        updateCountdown(latestAnJsCommitDate);
     }, 1000);
 
-    // 可选：每30分钟重新检测一次提交记录（更新最新日期）
+    // 可选优化：每30分钟重新检测一次提交记录（无需刷新页面）
     setInterval(async () => {
-        const newLatestCommitDate = await getLatestCommitDate();
-        // 仅当提交日期变化时更新（优化性能）
+        const newLatestCommitDate = await getLatestAnJsCommitDate();
+        // 仅当提交日期变化时更新（减少不必要计算）
         if (
-            (!latestCommitDate && newLatestCommitDate) ||
-            (latestCommitDate && newLatestCommitDate && latestCommitDate.getTime() !== newLatestCommitDate.getTime())
+            (!latestAnJsCommitDate && newLatestCommitDate) ||
+            (latestAnJsCommitDate && newLatestCommitDate && latestAnJsCommitDate.getTime() !== newLatestCommitDate.getTime())
         ) {
-            latestCommitDate = newLatestCommitDate;
+            latestAnJsCommitDate = newLatestCommitDate;
         }
     }, 30 * 60 * 1000); // 30分钟刷新一次提交记录
 }
