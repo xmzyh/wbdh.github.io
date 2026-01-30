@@ -24,7 +24,7 @@ function formatDate(date = new Date()) {
  * @returns {Promise<Date|null>} 最新提交的日期对象，失败则返回null
  */
 async function getLatestCommitDate() {
-    const apiUrl = 'https://api.github.com/repos/xmzyh/wbdh.github.io/commits/main?path=config.js';
+    const apiUrl = 'https://api.github.com/repos/xmzyh/wbdh.github.io/commits/main?path=an.js';
     try {
         // 发起请求获取最新提交信息（添加缓存控制，避免频繁请求）
         const response = await fetch(apiUrl, {
