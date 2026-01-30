@@ -20,31 +20,34 @@ function formatDate(date = new Date()) {
 }
 
 /**
- * 获取an.js文件的最新提交时间（精准获取文件专属提交）
- * @returns {Promise<Date|null>} 最新提交的日期对象（本地时区），失败则返回null
+ * 获取an.js文件的最新提交时间（GitHub Pages环境专用，无跨域）
+ * @returns {Promise<Date|null>} 最新提交的日期对象，失败则返回null
  */
 async function getLatestAnJsCommitDate() {
     const apiUrl = 'https://api.github.com/repos/xmzyh/wbdh.github.io/contents/an.js?ref=main';
     try {
+        // GitHub Pages环境无需跨域代理，直接请求
         const response = await fetch(apiUrl, {
             method: 'GET',
             headers: {
                 'Accept': 'application/vnd.github.v3+json',
-                'Cache-Control': 'max-age=300'
-            }
+                'Cache-Control': 'max-age=300' // 5分钟缓存，避免API限流
+            },
+            timeout: 8000 // 延长超时时间，适配网络波动
         });
 
         if (!response.ok) {
-            console.error('获取an.js元数据失败：', response.status);
+            console.error('获取an.js提交信息失败，状态码：', response.status);
             return null;
         }
 
         const fileData = await response.json();
-        // 解析GitHub的UTC时间，并转换为本地时区的Date对象
-        const commitUtcTime = new Date(fileData.commit.commit.author.date);
-        return commitUtcTime;
+        // 解析GitHub返回的UTC时间，自动转换为本地时区
+        const commitTime = new Date(fileData.commit.commit.author.date);
+        console.log('[调试] an.js最后提交时间：', commitTime, '格式化：', formatDate(commitTime));
+        return commitTime;
     } catch (error) {
-        console.error('获取an.js提交记录出错：', error);
+        console.error('[错误] 获取an.js提交时间出错：', error.message);
         return null;
     }
 }
@@ -55,16 +58,15 @@ async function getLatestAnJsCommitDate() {
  * @returns {boolean} true=当天有更新，false=非当天更新
  */
 function isCommitInToday(commitDate) {
-    // 1. 获取本地时间的「当天0点」和「次日0点」
+    // 本地时区的「当天0点」和「次日0点」
     const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0); // 当天00:00:00.000
-
+    todayStart.setHours(0, 0, 0, 0);
     const todayEnd = new Date(todayStart);
-    todayEnd.setDate(todayEnd.getDate() + 1); // 次日00:00:00.000（即当天24点）
+    todayEnd.setDate(todayEnd.getDate() + 1);
 
-    // 2. 判断提交时间是否在「当天0点 - 次日0点」范围内
-    const commitTime = commitDate.getTime();
-    return commitTime >= todayStart.getTime() && commitTime < todayEnd.getTime();
+    // 判断提交时间是否在当天时间范围内
+    const commitTimestamp = commitDate.getTime();
+    return commitTimestamp >= todayStart.getTime() && commitTimestamp < todayEnd.getTime();
 }
 
 /**
@@ -97,37 +99,33 @@ function getCountdownConfig() {
 }
 
 /**
- * 更新倒计时和日期显示
+ * 更新倒计时和日期显示（核心逻辑）
  * @param {Date|null} latestCommitDate an.js最新提交日期
  */
 function updateCountdown(latestCommitDate = null) {
-    // 1. 确定要显示的日期（修复核心逻辑）
+    // 1. 确定要显示的日期
     let displayDate;
     if (latestCommitDate) {
-        if (isCommitInToday(latestCommitDate)) {
-            // 当天有更新 → 显示当天日期
-            displayDate = new Date();
-        } else {
-            // 当天无更新 → 显示最后一次提交的日期
-            displayDate = latestCommitDate;
-        }
+        // 获取到提交时间：当天更新显示今日，否则显示提交日期
+        displayDate = isCommitInToday(latestCommitDate) ? new Date() : latestCommitDate;
     } else {
-        // 获取提交记录失败 → 降级显示当天日期
+        // 获取失败：降级显示当天日期（保证页面不报错）
         displayDate = new Date();
+        console.warn('[警告] 未获取到an.js提交时间，默认显示当天日期');
     }
 
-    // 更新日期显示
+    // 2. 更新日期显示（countdown-panel内的currentDate元素）
     const dateElement = document.getElementById('currentDate');
     if (dateElement) {
         dateElement.textContent = formatDate(displayDate);
     }
 
-    // 2. 更新倒计时显示（原有逻辑不变）
+    // 3. 更新倒计时显示
     const { label, target } = getCountdownConfig();
     const now = new Date();
     let diff = target - now; // 时间差（毫秒）
 
-    // 时间差为负则取0（防止出现负数时间）
+    // 防止出现负数时间
     if (diff < 0) diff = 0;
 
     // 转换为 时:分:秒
@@ -137,7 +135,7 @@ function updateCountdown(latestCommitDate = null) {
     diff -= m * 1000 * 60;
     const s = Math.floor(diff / 1000);
 
-    // 动态更新标题和时间
+    // 动态更新倒计时标题和数值
     const countdownLabel = document.getElementById('countdownLabel');
     const countdownValue = document.getElementById('countdownValue');
     if (countdownLabel && countdownValue) {
@@ -147,29 +145,35 @@ function updateCountdown(latestCommitDate = null) {
 }
 
 /**
- * 初始化倒计时（每秒更新）
+ * 初始化倒计时（GitHub Pages环境专用）
  */
 async function initCountdown() {
-    // 第一步：先获取an.js最新提交时间
+    // 第一步：先获取an.js最新提交时间（异步）
     const latestAnJsCommitDate = await getLatestAnJsCommitDate();
     
-    // 第二步：立即更新一次（带提交日期参数）
+    // 第二步：立即更新一次（确保页面加载就有内容）
     updateCountdown(latestAnJsCommitDate);
     
-    // 第三步：每秒刷新倒计时（复用提交日期，避免频繁请求API）
+    // 第三步：每秒刷新倒计时（复用提交时间，避免频繁请求API）
     setInterval(() => {
         updateCountdown(latestAnJsCommitDate);
     }, 1000);
 
-    // 可选优化：每30分钟重新检测一次提交记录（无需刷新页面）
+    // 第四步：每30分钟重新检测一次提交记录（无需刷新页面）
     setInterval(async () => {
-        const newLatestCommitDate = await getLatestAnJsCommitDate();
-        // 仅当提交日期变化时更新（减少不必要计算）
-        if (
-            (!latestAnJsCommitDate && newLatestCommitDate) ||
-            (latestAnJsCommitDate && newLatestCommitDate && latestAnJsCommitDate.getTime() !== newLatestCommitDate.getTime())
-        ) {
-            latestAnJsCommitDate = newLatestCommitDate;
+        const newCommitDate = await getLatestAnJsCommitDate();
+        // 仅当提交时间变化时更新（优化性能）
+        if (newCommitDate && (!latestAnJsCommitDate || newCommitDate.getTime() !== latestAnJsCommitDate.getTime())) {
+            latestAnJsCommitDate = newCommitDate;
+            updateCountdown(latestAnJsCommitDate);
+            console.log('[提示] an.js提交时间已更新，页面日期同步刷新');
         }
-    }, 30 * 60 * 1000); // 30分钟刷新一次提交记录
+    }, 30 * 60 * 1000); // 30分钟刷新一次
+}
+
+// 确保页面DOM加载完成后再初始化（GitHub Pages兼容）
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    initCountdown();
+} else {
+    document.addEventListener('DOMContentLoaded', initCountdown);
 }
