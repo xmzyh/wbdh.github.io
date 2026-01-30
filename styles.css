@@ -1,23 +1,32 @@
  * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; }
         body { 
-            min-height: 100vh;
-            max-width: 800px; 
-            margin: 0 auto; 
-            padding: 20px; 
-            background: #050b18;
-            background-image: url('https://youke.xn--y7xa690gmna.cn/s1/2026/01/30/697c571f4bcc6.webp'); /* 永久可用的科技风背景图 */
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            /* 移除 background-blend-mode: overlay; 解决蒙版混合问题 */
-            color: #ccd6f6;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow-x: hidden;
-            z-index: -4;
-        }
+    min-height: 100vh;
+    max-width: 800px; 
+    margin: 0 auto; 
+    padding: 20px; 
+    background: #050b18;
+    background-image: url('https://ghfast.top/raw.githubusercontent.com/xmzyh/wbdh.github.io/main/bj.jpg'); 
+    background-size: cover;
+    background-position: center;
+    /* 1. 移除background-attachment: fixed; 解决移动端兼容问题 */
+    /* 2. 添加background-repeat: no-repeat; 防止背景重复 */
+    background-repeat: no-repeat;
+    /* 3. 添加min-height: 100vh; 配合背景覆盖，确保全屏显示 */
+    color: #ccd6f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow-x: hidden;
+    z-index: -4;
+    /* 4. 移动端兼容：强制背景图跟随滚动，替代fixed的视觉效果 */
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+   5./* 提升背景图加载优先级，兼容低版本手机浏览器 */
+background-clip: border-box;
+-webkit-background-clip: border-box;
+}
         body::before {
             content: "";
             position: fixed;
