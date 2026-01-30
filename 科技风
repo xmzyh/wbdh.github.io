@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>汪贝付款直链二维码</title>
+    <style>
+       * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; }
+        body { 
+            min-height: 100vh;
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            background: #050b18;
+            background-image: url('https://ghfast.top/raw.githubusercontent.com/xmzyh/wbdh.github.io/main/bj.jpg'); /* 永久可用的科技风背景图 */
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            /* 移除 background-blend-mode: overlay; 解决蒙版混合问题 */
+            color: #ccd6f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow-x: hidden;
+            z-index: -4;
+        }
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 200%;
+            background: 
+                linear-gradient(rgba(18, 100, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(18, 100, 255, 0.1) 1px, transparent 1px);
+            background-size: 30px 30px;
+            z-index: -3;
+            animation: gridRotate 20s linear infinite;
+            transform-origin: center center;
+        }
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* 移除径向渐变遮罩，或保留低透明度（按需调整） */
+            background: radial-gradient(circle at 50% 50%, rgba(12, 34, 78, 0.2), #050b18 70%);
+            z-index: -2;
+        }
+        @keyframes gridRotate {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(1deg) scale(1.05); }
+            100% { transform: rotate(0deg) scale(1); }
+        }
+        .container { 
+            width: 100%;
+            background: rgba(12, 34, 78, 0.5); /* 适度透明：0.5 不影响背景显示，又保证内容清晰 */
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(38, 139, 255, 0.3);
+            border-radius: 20px;
+            padding: 40px 30px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            /* 新增：确保内容框不遮挡背景，且自身半透明 */
+            opacity: 1;
+        }
+        .container .neon-border {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border: 2px solid transparent;
+            border-radius: 20px;
+            background: linear-gradient(
+                45deg, 
+                transparent 50%, 
+                rgba(38, 139, 255, 0.4), 
+                rgba(100, 216, 247, 0.4)
+            ) border-box;
+            -webkit-mask: 
+                linear-gradient(#fff 0 0) padding-box, 
+                linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            animation: neonBreathe 4s ease-in-out infinite;
+            z-index: -1;
+        }
+        @keyframes neonBreathe {
+            0%,100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+        .container .light-sweep {
+            position: absolute;
+            top: 0;
+            left: -150%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(
+                45deg, 
+                transparent, 
+                rgba(100, 216, 247, 0.08), 
+                transparent
+            );
+            animation: lightSweep 6s linear infinite;
+            z-index: 0;
+        }
+        @keyframes lightSweep {
+            0% { left: -150%; transform: skewX(-20deg); }
+            100% { left: 150%; transform: skewX(-20deg); }
+        }
+        h1 { 
+            font-size: 30px; 
+            color: #268bff;
+            text-align: center; 
+            margin-bottom: 8px;
+            text-shadow: 0 0 20px rgba(38, 139, 255, 0.4);
+            position: relative;
+            z-index: 1;
+        }
+        h2 { 
+            font-size: 16px; 
+            color: #8892b0;
+            text-align: center; 
+            margin-bottom: 25px;
+            font-weight: 400;
+            position: relative;
+            z-index: 1;
+        }
+        .countdown-panel {
+            padding: 20px 20px;
+            background: rgba(5, 15, 35, 0.5);
+            border: 1px solid rgba(38, 139, 255, 0.2);
+            border-radius: 12px;
+            margin-bottom: 25px;
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+        .countdown-label {
+            font-size: 14px;
+            color: #8892b0;
+            margin-bottom: 10px;
+            display: block;
+        }
+        .countdown-value {
+            font-size: 28px;
+            color: #64d8f7;
+            font-weight: 600;
+            text-shadow: 0 0 15px rgba(100, 216, 247, 0.4);
+            letter-spacing: 4px;
+        }
+        #generateBtn { 
+            width: 100%; 
+            height: 58px; 
+            background: linear-gradient(135deg, #1677ff, #268bff);
+            color: #fff; 
+            border: none; 
+            border-radius: 12px; 
+            font-size: 18px; 
+            cursor: pointer; 
+            transition: all 0.3s ease;
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+            box-shadow: 0 0 20px rgba(22, 119, 255, 0.3);
+        }
+        #generateBtn::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translate(-50%, -50%);
+            animation: btnPulse 3s ease-in-out infinite;
+            z-index: -1;
+        }
+        @keyframes btnPulse {
+            0%,100% { width: 0; height: 0; opacity: 0.8; }
+            50% { width: 200px; height: 200px; opacity: 0; }
+        }
+        #generateBtn:hover { 
+            background: linear-gradient(135deg, #0d66e6, #1677ff);
+            box-shadow: 0 0 30px rgba(22, 119, 255, 0.5);
+            transform: translateY(-2px);
+        }
+        #generateBtn:active {
+            transform: translateY(0);
+            box-shadow: 0 0 20px rgba(22, 119, 255, 0.3);
+        }
+        #generateBtn.loading {
+            background: #445069;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+            animation: none;
+        }
+        #generateBtn.loading::before {
+            animation: none;
+        }
+        .btn-loading-icon {
+            width: 24px;
+            height: 24px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+            display: none;
+        }
+        #generateBtn.loading .btn-loading-icon {
+            display: inline-block;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .goods-item { 
+            padding: 28px 20px; 
+            border: 1px solid rgba(38, 139, 255, 0.2);
+            border-radius: 16px; 
+            margin-bottom: 20px; 
+            text-align: center; 
+            background: rgba(12, 34, 78, 0.4);
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(15px);
+            animation: fadeInUp 0.5s ease forwards;
+            position: relative;
+            z-index: 1;
+        }
+        .goods-item:nth-child(n+1) { animation-delay: 0.1s; }
+        .goods-item:nth-child(n+2) { animation-delay: 0.2s; }
+        .goods-item:nth-child(n+3) { animation-delay: 0.3s; }
+        .goods-item:nth-child(n+4) { animation-delay: 0.4s; }
+        .goods-item:nth-child(n+5) { animation-delay: 0.5s; }
+        .goods-item:nth-child(n+6) { animation-delay: 0.6s; }
+        @keyframes fadeInUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .goods-item:hover {
+            border-color: #268bff;
+            background: rgba(12, 34, 78, 0.6);
+            box-shadow: 0 0 20px rgba(38, 139, 255, 0.2);
+        }
+        .goods-name { 
+            font-size: 17px; 
+            font-weight: 500; 
+            color: #e6f1ff; 
+            margin-bottom: 20px; 
+            line-height: 1.5;
+            position: relative;
+        }
+        .goods-name.loading {
+            color: transparent;
+            background: linear-gradient(90deg, transparent, rgba(100, 216, 247, 0.2), transparent);
+            background-size: 200% 100%;
+            animation: textLoading 1.5s infinite;
+            border-radius: 4px;
+            height: 24px;
+            width: 80%;
+            margin: 0 auto 20px;
+        }
+        @keyframes textLoading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .qrcode-box { 
+            width: 180px; 
+            height: 180px; 
+            margin: 0 auto; 
+            padding: 10px; 
+            border-radius: 12px; 
+            cursor: pointer; 
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #f0f7ff, #ffffff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        .qrcode-box:hover { 
+            transform: scale(1.03);
+            box-shadow: 0 8px 25px rgba(38, 139, 255, 0.3);
+            background: linear-gradient(135deg, #e6f1ff, #f0f7ff);
+        }
+        .qrcode-box img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .qrcode-loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            border-radius: 12px;
+        }
+        .qrcode-loading-icon {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(5, 11, 24, 0.3);
+            border-radius: 50%;
+            border-top-color: #050b18;
+            animation: spin 1.5s linear infinite;
+        }
+        .empty-tip { 
+            text-align: center; 
+            font-size: 18px; 
+            color: #8892b0; 
+            padding: 60px 0; 
+            line-height: 1.6;
+            position: relative;
+            z-index: 1;
+        }
+        .param-tip { 
+            color: #ffd066; 
+            font-size: 13px; 
+            margin: 10px 0 20px; 
+            padding: 8px 12px; 
+            background: rgba(255, 208, 102, 0.1);
+            border-radius: 6px; 
+            border: 1px solid rgba(255, 208, 102, 0.3); 
+            display: inline-block;
+        }
+        .copy-success { 
+            position: fixed; 
+            top: 30px; 
+            left: 50%; 
+            transform: translateX(-50%) scale(0.9); 
+            background: linear-gradient(135deg, #64d8f7, #268bff);
+            color: #050b18; 
+            padding: 14px 28px; 
+            border-radius: 10px; 
+            font-size: 15px; 
+            font-weight: 500;
+            display: none; 
+            z-index: 9999;
+            box-shadow: 0 4px 20px rgba(100, 216, 247, 0.4);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .copy-success.show {
+            display: block;
+            opacity: 1;
+            transform: translateX(-50%) scale(1);
+        }
+        @media (max-width: 480px) {
+            .container { padding: 30px 20px; }
+            h1 { font-size: 24px; }
+            h2 { font-size: 14px; }
+            .countdown-panel { padding: 16px 15px; }
+            .countdown-value { font-size: 22px; letter-spacing: 2px; }
+            #generateBtn { height: 52px; font-size: 16px; }
+            .qrcode-box { width: 150px; height: 150px; }
+            .goods-item { padding: 20px 15px; }
+            .copy-success { padding: 12px 20px; font-size: 14px; }
+            .qrcode-loading-icon { width: 30px; height: 30px; }
+            .btn-loading-icon { width: 20px; height: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="neon-border"></div>
+        <div class="light-sweep"></div>
+        <h1>汪贝付款直链二维码</h1>
+        <!-- 单一场次倒计时面板（核心修改） -->
+        <div class="countdown-panel">
+            <span class="countdown-label" id="countdownLabel">距离本场开始剩余</span>
+            <div class="countdown-value" id="countdownValue">00:00:00</div>
+        </div>
+        <button id="generateBtn">
+            <span class="btn-loading-icon"></span>
+            <span class="btn-text">获取本场商品（码已更新）</span>
+        </button>
+        <div id="resultArea"></div>
+        <div class="copy-success" id="copySuccess">二维码对应链接复制成功！</div>
+    </div>
+
+    <!-- 引入二维码生成库 -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <!-- 1. 全局变量定义 -->
+    <script>
+        // 全局元素引用
+        let generateBtn, resultArea, copySuccess, btnText, countdownLabel, countdownValue;
+        // 商品数据源
+        const innerGoodsData = {"code":"0","success":true,"data":{"floorData":{"uniqId":"d77d7d70-4496-41ff-bf72-8e7c34892bf0","name":"福利专区秒杀楼层","floorType":"SCORE_FLASH_SALE_FLOOR","items":[{"productList":[{"uniqId":"b0df0fbf-d56e-49c2-b6c3-fb8d1dec8ef0","activityId":1455515,"rewardImg":"https://m.360buyimg.com/n1/jfs/t1/332664/40/15173/675620/68cd0680F6e3f7c5e/4a9fb5657af0afc4.png","rewardName":"原味瓜子1袋","skuId":"100282523800","exchangeRate":99,"payAmount":"1.5","canExchange":true,"jumpUrl":"https://m-sep.jd.com/ProductDetail?businessType=119501&activityId=1455515&skuId=100282523800","salePrice":"11.90","startTime":1769666400000,"endTime":1769677200000,"showStartTime":1769616000000,"showEndTime":1769677200000,"subscribeStatus":0,"token":"0DB12887B7D16F664BA5653B953AE41DB4B3448CF05BAD9D475D121D24988E85DA78380AF193787ED9238F0B87AE5A1952468F0A34F19DA785E5FF740860A9649F50A47BEE80DCD49E0AE7448AEB3EBF1AE6F8E4051EDDD7D2F24B08423066EE990BFD7FD8BC4C31AB4ECF7D69268553","saleStartTime":14,"isSelfService":"1"},{"uniqId":"36e58305-6dba-4620-8b6b-da808e3051dc","activityId":1455515,"rewardImg":"https://m.360buyimg.com/n1/jfs/t1/386630/5/3847/57694/6960672eFb12e814f/a587f06241ed6c84.png","rewardName":"徐福记沙琪玛1袋","skuId":"100137924664","exchangeRate":99,"payAmount":"1.9","canExchange":true,"jumpUrl":"https://m-sep.jd.com/ProductDetail?businessType=119501&activityId=1455515&skuId=100137924664","salePrice":"19.90","startTime":1769666400000,"endTime":1769677200000,"showStartTime":1769616000000,"showEndTime":1769677200000,"subscribeStatus":0,"token":"0DB12887B7D16F664BA5653B953AE41DB4B3448CF05BAD9D475D121D24988E85DA78380AF193787ED9238F0B87AE5A19685E1B589AB713D16F829C088F2FB17367AEA01F1C9DF6268E9A9E31DDF4749DE417E161087648B484FBCD99FED1D84FC8039F9E27B4AD22FDE9674E2E238C73FD3115869A9AE11F3A619BE34A1DA45E","saleStartTime":14,"isSelfService":"1"},{"uniqId":"6c9ff237-fef4-444c-8879-21f656d2557c","activityId":1455515,"rewardImg":"https://m.360buyimg.com/n1/jfs/t1/381138/12/12426/110752/6954e836F0ce7c47c/73a9c466eadfd966.png","rewardName":"健力宝6罐","skuId":"100067742303","exchangeRate":99,"payAmount":"3.9","canExchange":true,"jumpUrl":"https://m-sep.jd.com/ProductDetail?businessType=119501&activityId=1455515&skuId=100067742303","salePrice":"24.90","startTime":1769666400000,"endTime":1769677200000,"showStartTime":1769616000000,"showEndTime":1769677200000,"subscribeStatus":0,"token":"0DB12887B7D16F664BA5653B953AE41DB4B3448CF05BAD9D475D121D24988E85DA78380AF193787ED9238F0B87AE5A19532AC5B5EE5A3D67DFD840CAF2EB04F97D83CFA2A0A244CBA14EE3984FDB030B8132B6AD0E1E83C8D920ACB425BB8D9271FB6C0D62BB8925A86F7747BB3F2F2F","saleStartTime":14,"isSelfService":"1"},{"uniqId":"12b0c932-87a2-4e89-8ffd-e562183dc7e4","activityId":1455515,"rewardImg":"https://m.360buyimg.com/n1/jfs/t1/150326/35/31268/72829/643791f8Fc561bafa/b931345fd7cc4c8a.png","rewardName":"奥妙洗衣液2斤","skuId":"100138810059","exchangeRate":99,"payAmount":"3.9","canExchange":true,"jumpUrl":"https://m-sep.jd.com/ProductDetail?businessType=119501&activityId=1455515&skuId=100138810059","salePrice":"16.90","startTime":1769666400000,"endTime":1769677200000,"showStartTime":1769616000000,"showEndTime":1769677200000,"subscribeStatus":0,"token":"0DB12887B7D16F664BA5653B953AE41DB4B3448CF05BAD9D475D121D24988E85DA78380AF193787ED9238F0B87AE5A1921542DD0535E95C82F8805FFB4F15D3BBB7186E968A5489A38AEFA18756E52DB83AE9A986AAB43010258FD0BAD0DAF3CDBAB71355F55913AB814B2A1E948D8B43A3F6DE968302898E8214213F3CA7E5C","saleStartTime":14,"isSelfService":"1"},{"uniqId":"33270acf-60fe-444d-849f-2e6d3092a2f2","activityId":1455515,"rewardImg":"https://m.360buyimg.com/n1/jfs/t1/362848/29/7072/80056/692cee35F3fd6d9e1/79beadfbbabb5e5f.png","rewardName":"白砂糖3袋","skuId":"100294335434","exchangeRate":99,"payAmount":"4.9","canExchange":true,"jumpUrl":"https://m-sep.jd.com/ProductDetail?businessType=119501&activityId=1455515&skuId=100294335434","salePrice":"23.90","startTime":1769666400000,"endTime":1769677200000,"showStartTime":1769616000000,"showEndTime":1769677200000,"subscribeStatus":0,"token":"0DB12887B7D16F664BA5653B953AE41DB4B3448CF05BAD9D475D121D24988E85DA78380AF193787ED9238F0B87AE5A19A1F5AA6310DD4FE0328FE076C2013ABAB99CB27C5BC6EE1BCF427D92CBAAEA9D271FF6BEDF69AE7517CA814D1226CC0DECCA50C2FF6BB3C581F635DF25EABBE0","saleStartTime":14,"isSelfService":"1"},{"uniqId":"a95aeb70-e743-4823-98ff-9c3ab837bf87","activityId":1455515,"rewardImg":"https://m.360buyimg.com/n1/jfs/t1/87479/26/19043/330270/61400f84Ed391a977/14d11c33d0ba5626.png","rewardName":" 胡姬花400ml","skuId":"100014365067","exchangeRate":99,"payAmount":"6.9","canExchange":true,"jumpUrl":"https://m-sep.jd.com/ProductDetail?businessType=119501&activityId=1455515&skuId=100014365067","salePrice":"19.90","startTime":1769666400000,"endTime":1769677200000,"showStartTime":1769616000000,"showEndTime":1769677200000,"subscribeStatus":0,"token":"0DB12887B7D16F664BA5653B953AE41DB4B3448CF05BAD9D475D121D24988E85DA78380AF193787ED9238F0B87AE5A198C31AE34C26271D5C9A5CC9F5636263E3B80655F7E03B4C8FA674AED65985CAE882906B024A032ADC70E1DB0C727D9FE7AFCC98523794BF8385344D9840074F1","saleStartTime":14,"isSelfService":"1"}]}]}}};
+    </script>
+
+    <!-- 商品解析模块（保持不变） -->
+    <script>
+        function parseGoods() {
+            const goodsList = [];
+            const productList = innerGoodsData?.data?.floorData?.items?.[0]?.productList || [];
+            
+            if (productList.length === 0) {
+                console.error('未获取到商品列表，检查数据层级！');
+                return goodsList;
+            }
+            
+            productList.forEach(item => {
+                let businessType = '119501';
+                if (item.jumpUrl) {
+                    const reg = /businessType=([^&]+)/;
+                    const match = item.jumpUrl.match(reg);
+                    if (match) businessType = match[1];
+                }
+
+                const params = { businessType, activityId: item.activityId, skuId: item.skuId };
+                const baseUrl = 'https://m-sep.jd.com/Settlement?showhead=no';
+                const query = Object.entries(params)
+                    .filter(([k, v]) => v)
+                    .map(([k, v]) => `${k}=${v}`)
+                    .join('&');
+                const targetUrl = query ? `${baseUrl}&${query}` : baseUrl;
+
+                goodsList.push({
+                    name: item.rewardName || '未知商品',
+                    params,
+                    targetUrl
+                });
+            });
+            
+            return goodsList;
+        }
+    </script>
+
+    <!-- 二维码渲染与复制功能（保持不变） -->
+    <script>
+        function copyLink(url) {
+            navigator.clipboard.writeText(url)
+                .then(showCopyTip)
+                .catch(() => {
+                    const input = document.createElement('input');
+                    input.value = url;
+                    document.body.appendChild(input);
+                    input.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(input);
+                    showCopyTip();
+                });
+        }
+
+        function showCopyTip() {
+            copySuccess.classList.add('show');
+            setTimeout(() => copySuccess.classList.remove('show'), 1500);
+        }
+
+        function renderQrcode(goodsList) {
+            resultArea.innerHTML = '';
+            
+            if (goodsList.length === 0) {
+                resultArea.innerHTML = '<div class="empty-tip">未提取到有效商品信息，请检查内置数据！</div>';
+                return false;
+            }
+            
+            goodsList.forEach((goods, index) => {
+                const goodsItem = document.createElement('div');
+                goodsItem.className = 'goods-item';
+                goodsItem.setAttribute('data-index', index);
+                
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'goods-name loading';
+                nameDiv.innerText = `${index + 1}、${goods.name}`;
+                goodsItem.appendChild(nameDiv);
+                
+                const qrBox = document.createElement('div');
+                qrBox.className = 'qrcode-box';
+                qrBox.id = `qrcode_${index}`;
+                
+                const qrLoading = document.createElement('div');
+                qrLoading.className = 'qrcode-loading';
+                const loadingIcon = document.createElement('div');
+                loadingIcon.className = 'qrcode-loading-icon';
+                qrLoading.appendChild(loadingIcon);
+                qrBox.appendChild(qrLoading);
+                
+                goodsItem.appendChild(qrBox);
+                resultArea.appendChild(goodsItem);
+                
+                setTimeout(() => {
+                    const nameEl = goodsItem.querySelector('.goods-name');
+                    nameEl.classList.remove('loading');
+                    qrBox.querySelector('.qrcode-loading').remove();
+                    
+                    qrBox.onclick = () => copyLink(goods.targetUrl);
+                    
+                    new QRCode(document.getElementById(`qrcode_${index}`), {
+                        text: goods.targetUrl,
+                        width: 160,
+                        height: 160,
+                        colorDark: '#050b18',
+                        colorLight: '#ffffff',
+                        correctLevel: QRCode.CorrectLevel.M
+                    });
+                    
+                    const lackParams = [];
+                    if (!goods.params.activityId) lackParams.push('activityId');
+                    if (!goods.params.skuId) lackParams.push('skuId');
+                    if (lackParams.length > 0) {
+                        const tipDiv = document.createElement('div');
+                        tipDiv.className = 'param-tip';
+                        tipDiv.innerText = `缺失参数：${lackParams.join('、')}（二维码可能无效）`;
+                        goodsItem.insertBefore(tipDiv, qrBox);
+                    }
+                }, 300 * (index + 1));
+            });
+            
+            return true;
+        }
+    </script>
+
+    <!-- 按钮交互事件（保持不变） -->
+    <script>
+        function initEventListeners() {
+            let isGenerating = false;
+            
+            generateBtn.addEventListener('click', function() {
+                if (isGenerating) return;
+                
+                isGenerating = true;
+                this.classList.add('loading');
+                btnText.innerText = '正在生成...';
+                
+                try {
+                    setTimeout(() => {
+                        const goodsList = parseGoods();
+                        const renderSuccess = renderQrcode(goodsList);
+                        
+                        btnText.innerText = renderSuccess ? '商品加载成功' : '获取商品失败';
+                        generateBtn.classList.remove('loading');
+                        isGenerating = false;
+                    }, 800);
+                } catch (e) {
+                    console.error('生成失败：', e);
+                    alert(`解析失败：${e.message}`);
+                    
+                    btnText.innerText = '获取商品失败';
+                    generateBtn.classList.remove('loading');
+                    isGenerating = false;
+                }
+            });
+        }
+    </script>
+
+    <!-- 核心：时段判断+单倒计时逻辑（按要求重写） -->
+    <script>
+        /**
+         * 格式化时间（补零）
+         * @param {number} num 数字
+         * @returns {string} 补零后的字符串
+         */
+        function formatTime(num) {
+            return num.toString().padStart(2, '0');
+        }
+
+        /**
+         * 核心：判断当前时段，返回倒计时配置（标题+目标时间）
+         * @returns {Object} {label: 倒计时标题, target: 目标时间戳}
+         */
+        function getCountdownConfig() {
+            const now = new Date();
+            const hours = now.getHours(); // 当前小时（0-23）
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // 今日0点
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1); // 明日0点
+
+            // 定义各时段目标时间
+            const target14 = new Date(today); target14.setHours(14, 0, 0, 0); // 今日14点
+            const target17 = new Date(today); target17.setHours(17, 0, 0, 0); // 今日17点
+            const target20 = new Date(today); target20.setHours(20, 0, 0, 0); // 今日20点
+            const targetNext14 = new Date(tomorrow); targetNext14.setHours(14, 0, 0, 0); // 次日14点
+
+            // 按4个时段判断
+            if (hours >= 0 && hours < 14) {
+                // 00:00-14:00：距离本场开始剩余 → 目标14点
+                return { label: '距离14:00场开始剩余', target: target14 };
+            } else if (hours >= 14 && hours < 17) {
+                // 14:00-17:00：距离本场结束剩余 → 目标17点
+                return { label: '距离14:00场结束剩余', target: target17 };
+            } else if (hours >= 17 && hours < 20) {
+                // 17:00-20:00：距离本场开始剩余 → 目标20点
+                return { label: '距离17:00场开始剩余', target: target20 };
+            } else {
+                // 20:00-24:00：距离本场开始剩余 → 目标次日14点
+                return { label: '距离17:00场开始剩余', target: targetNext14 };
+            }
+        }
+
+        /**
+         * 更新倒计时显示
+         */
+        function updateCountdown() {
+            const { label, target } = getCountdownConfig();
+            const now = new Date();
+            let diff = target - now; // 时间差（毫秒）
+
+            // 时间差为负则取0（防止出现负数时间）
+            if (diff < 0) diff = 0;
+
+            // 转换为 时:分:秒
+            const h = Math.floor(diff / (1000 * 60 * 60));
+            diff -= h * 1000 * 60 * 60;
+            const m = Math.floor(diff / (1000 * 60));
+            diff -= m * 1000 * 60;
+            const s = Math.floor(diff / 1000);
+
+            // 动态更新标题和时间
+            countdownLabel.textContent = label;
+            countdownValue.textContent = `${formatTime(h)}:${formatTime(m)}:${formatTime(s)}`;
+        }
+
+        /**
+         * 初始化倒计时（每秒更新）
+         */
+        function initCountdown() {
+            updateCountdown(); // 立即更新
+            setInterval(updateCountdown, 1000); // 每秒刷新
+        }
+    </script>
+
+    <!-- 页面初始化（修改） -->
+    <script>
+        function initPage() {
+            // 获取DOM元素
+            generateBtn = document.getElementById('generateBtn');
+            resultArea = document.getElementById('resultArea');
+            copySuccess = document.getElementById('copySuccess');
+            btnText = document.querySelector('.btn-text');
+            countdownLabel = document.getElementById('countdownLabel');
+            countdownValue = document.getElementById('countdownValue');
+            
+            // 初始化倒计时和事件
+            initCountdown();
+            initEventListeners();
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', initPage);
+    </script>
+</body>
+</html>
