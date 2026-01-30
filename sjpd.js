@@ -8,6 +8,18 @@ function formatTime(num) {
 }
 
 /**
+ * 格式化日期（年-月-日）
+ * @returns {string} 格式化后的日期字符串，如：2026年01月31日
+ */
+function formatCurrentDate() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = formatTime(now.getMonth() + 1); // 月份从0开始，需+1
+    const day = formatTime(now.getDate());
+    return `${year}年${month}月${day}日`;
+}
+
+/**
  * 核心：判断当前时段，返回倒计时配置（标题+目标时间）
  * @returns {Object} {label: 倒计时标题, target: 目标时间戳}
  */
@@ -41,9 +53,16 @@ function getCountdownConfig() {
 }
 
 /**
- * 更新倒计时显示
+ * 更新倒计时和日期显示
  */
 function updateCountdown() {
+    // 1. 更新日期显示
+    const dateElement = document.getElementById('currentDate');
+    if (dateElement) {
+        dateElement.textContent = formatCurrentDate();
+    }
+
+    // 2. 更新倒计时显示
     const { label, target } = getCountdownConfig();
     const now = new Date();
     let diff = target - now; // 时间差（毫秒）
@@ -59,7 +78,6 @@ function updateCountdown() {
     const s = Math.floor(diff / 1000);
 
     // 动态更新标题和时间
-    // 确保页面上有 id 为 countdownLabel 和 countdownValue 的元素
     const countdownLabel = document.getElementById('countdownLabel');
     const countdownValue = document.getElementById('countdownValue');
     if (countdownLabel && countdownValue) {
