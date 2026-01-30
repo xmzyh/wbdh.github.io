@@ -22,7 +22,7 @@
             const target14 = new Date(today); target14.setHours(14, 0, 0, 0); // 今日14点
             const target17 = new Date(today); target17.setHours(17, 0, 0, 0); // 今日17点
             const target20 = new Date(today); target20.setHours(20, 0, 0, 0); // 今日20点
-            const targetNext14 = new Date(tomorrow); targetNext14.setHours(14, 0, 0, 0); // 次日14点
+            const target24 = new Date(today); target20.setHours(24, 0, 0, 0); // 今日20点
 
             // 按4个时段判断
             if (hours >= 0 && hours < 14) {
@@ -35,8 +35,8 @@
                 // 17:00-20:00：距离本场开始剩余 → 目标20点
                 return { label: '距离20:00场开始剩余', target: target20 };
             } else {
-                // 20:00-24:00：距离本场开始剩余 → 目标次日14点
-                return { label: '距离20:00场结束剩余', target: targetNext14 };
+                // 20:00-24:00：距离本场开始剩余 → 目标24点
+                return { label: '距离20:00场结束剩余', target: target24 };
             }
         }
 
