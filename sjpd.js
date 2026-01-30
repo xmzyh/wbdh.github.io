@@ -21,17 +21,16 @@ function formatDate(date = new Date()) {
 
 /**
  * 获取an.js文件的最新提交时间（精准获取文件专属提交）
- * @returns {Promise<Date|null>} 最新提交的日期对象，失败则返回null
+ * @returns {Promise<Date|null>} 最新提交的日期对象（本地时区），失败则返回null
  */
 async function getLatestAnJsCommitDate() {
-    // 使用GitHub内容API，精准获取an.js的元数据
     const apiUrl = 'https://api.github.com/repos/xmzyh/wbdh.github.io/contents/an.js?ref=main';
     try {
         const response = await fetch(apiUrl, {
             method: 'GET',
             headers: {
                 'Accept': 'application/vnd.github.v3+json',
-                'Cache-Control': 'max-age=300' // 5分钟缓存，避免API限流
+                'Cache-Control': 'max-age=300'
             }
         });
 
@@ -41,9 +40,9 @@ async function getLatestAnJsCommitDate() {
         }
 
         const fileData = await response.json();
-        // 解析文件最后提交的时间（GitHub返回ISO格式字符串）
-        const commitTime = new Date(fileData.commit.commit.author.date);
-        return commitTime;
+        // 解析GitHub的UTC时间，并转换为本地时区的Date对象
+        const commitUtcTime = new Date(fileData.commit.commit.author.date);
+        return commitUtcTime;
     } catch (error) {
         console.error('获取an.js提交记录出错：', error);
         return null;
@@ -51,17 +50,21 @@ async function getLatestAnJsCommitDate() {
 }
 
 /**
- * 判断日期是否为当天（00:00-24:00）
- * @param {Date} date 要判断的日期
- * @returns {boolean} 是否为当天
+ * 精准判断：提交时间是否属于「当天（本地时间00:00-24:00）」
+ * @param {Date} commitDate 提交时间（Date对象）
+ * @returns {boolean} true=当天有更新，false=非当天更新
  */
-function isToday(date) {
-    const today = new Date();
-    return (
-        date.getFullYear() === today.getFullYear() &&
-        date.getMonth() === today.getMonth() &&
-        date.getDate() === today.getDate()
-    );
+function isCommitInToday(commitDate) {
+    // 1. 获取本地时间的「当天0点」和「次日0点」
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0); // 当天00:00:00.000
+
+    const todayEnd = new Date(todayStart);
+    todayEnd.setDate(todayEnd.getDate() + 1); // 次日00:00:00.000（即当天24点）
+
+    // 2. 判断提交时间是否在「当天0点 - 次日0点」范围内
+    const commitTime = commitDate.getTime();
+    return commitTime >= todayStart.getTime() && commitTime < todayEnd.getTime();
 }
 
 /**
@@ -83,16 +86,12 @@ function getCountdownConfig() {
 
     // 按4个时段判断
     if (hours >= 0 && hours < 14) {
-        // 00:00-14:00：距离14点场开始剩余 → 目标14点
         return { label: '距离14:00场开始剩余', target: target14 };
     } else if (hours >= 14 && hours < 17) {
-        // 14:00-17:00：距离14点场结束剩余 → 目标17点
         return { label: '距离14:00场结束剩余', target: target17 };
     } else if (hours >= 17 && hours < 20) {
-        // 17:00-20:00：距离20点场开始剩余 → 目标20点
         return { label: '距离20:00场开始剩余', target: target20 };
     } else {
-        // 20:00-24:00：距离20点场结束剩余 → 目标24点（明日0点）
         return { label: '距离20:00场结束剩余', target: target24 };
     }
 }
@@ -102,14 +101,16 @@ function getCountdownConfig() {
  * @param {Date|null} latestCommitDate an.js最新提交日期
  */
 function updateCountdown(latestCommitDate = null) {
-    // 1. 确定要显示的日期（核心规则）
+    // 1. 确定要显示的日期（修复核心逻辑）
     let displayDate;
-    if (latestCommitDate && isToday(latestCommitDate)) {
-        // 当天有更新 → 显示当天日期
-        displayDate = new Date();
-    } else if (latestCommitDate) {
-        // 当天无更新 → 显示最后一次提交的日期
-        displayDate = latestCommitDate;
+    if (latestCommitDate) {
+        if (isCommitInToday(latestCommitDate)) {
+            // 当天有更新 → 显示当天日期
+            displayDate = new Date();
+        } else {
+            // 当天无更新 → 显示最后一次提交的日期
+            displayDate = latestCommitDate;
+        }
     } else {
         // 获取提交记录失败 → 降级显示当天日期
         displayDate = new Date();
