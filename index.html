@@ -4,13 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>汪贝付款直链二维码</title>
-<link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <div class="neon-border"></div>
         <div class="light-sweep"></div>
         <h1>汪贝付款直链二维码</h1>
+        <!-- 新增：用于展示最新更新时间的元素 -->
+        <div class="update-time" id="updateTime"></div>
         <!-- 单一场次倒计时面板（核心修改） -->
         <div class="countdown-panel">
             <div class="current-date" id="currentDate"></div>
@@ -19,7 +21,7 @@
         </div>
         <button id="generateBtn">
             <span class="btn-loading-icon"></span>
-            <span class="btn-text">获取本场商品（码未更新）</span>
+            <span class="btn-text">获取商品信息</span>
         </button>
         <div id="resultArea"></div>
         <div class="copy-success" id="copySuccess">二维码对应链接复制成功！</div>
@@ -43,9 +45,48 @@
     <!-- 核心：时段判断+单倒计时逻辑（按要求重写） -->
     <script src="sjpd.js"></script>
 
-    <!-- 页面初始化（修改） -->
+    <!-- 新增：获取GitHub提交时间并展示的逻辑 -->
     <script>
-        function initPage() {
+        // 格式化时间为 年-月-日 时:分:秒 格式
+        function formatCommitTime(isoTimeStr) {
+            const date = new Date(isoTimeStr);
+            // 补零函数，确保数字为两位数
+            const padZero = (num) => num.toString().padStart(2, '0');
+            
+            const year = date.getFullYear();
+            const month = padZero(date.getMonth() + 1); // 月份从0开始，需+1
+            const day = padZero(date.getDate());
+            const hours = padZero(date.getHours());
+            const minutes = padZero(date.getMinutes());
+            
+            return `${year}/${month}/${day} ${hours}:${minutes}`;
+        }
+
+        // 从GitHub API获取config.js的最新提交时间
+        async function getLatestConfigUpdateTime() {
+            try {
+                // GitHub API地址：获取指定仓库指定文件的最新提交信息
+                const apiUrl = 'https://api.github.com/repos/xmzyh/wbdh.github.io/commits/main?path=config.js';
+                const response = await fetch(apiUrl);
+
+                // 处理API请求失败的情况
+                if (!response.ok) {
+                    throw new Error(`请求失败，状态码：${response.status}`);
+                }
+
+                const commitData = await response.json();
+                // 提取提交时间（ISO格式）并格式化
+                const commitTime = commitData.commit.committer.date;
+                return `商品码更新时间：${formatCommitTime(commitTime)}`;
+            } catch (error) {
+                // 出错时返回默认文字，不影响页面正常使用
+                console.error('获取config.js最新更新时间失败：', error);
+                return '最新更新时间：未知';
+            }
+        }
+
+        // 页面初始化（修改并整合原有逻辑）
+        async function initPage() {
             // 获取DOM元素
             generateBtn = document.getElementById('generateBtn');
             resultArea = document.getElementById('resultArea');
@@ -53,8 +94,14 @@
             btnText = document.querySelector('.btn-text');
             countdownLabel = document.getElementById('countdownLabel');
             countdownValue = document.getElementById('countdownValue');
+            // 新增：获取展示更新时间的DOM元素
+            updateTime = document.getElementById('updateTime');
             
-            // 初始化倒计时和事件
+            // 核心修改：获取最新更新时间并渲染到标题下方的元素中
+            const latestUpdateTime = await getLatestConfigUpdateTime();
+            updateTime.textContent = latestUpdateTime;
+            
+            // 初始化倒计时和事件（原有逻辑）
             initCountdown();
             initEventListeners();
         }
