@@ -4,15 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>汪贝付款直链二维码</title>
-    <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <div class="neon-border"></div>
         <div class="light-sweep"></div>
         <h1>汪贝付款直链二维码</h1>
-        <!-- 新增更新时间展示区（原代码缺失，已补） -->
-        <div id="updateTime" style="margin: 15px 0; font-size: 16px; color: #666;"></div>
         <!-- 单一场次倒计时面板（核心修改） -->
         <div class="countdown-panel">
             <div class="current-date" id="currentDate"></div>
@@ -21,7 +19,7 @@
         </div>
         <button id="generateBtn">
             <span class="btn-loading-icon"></span>
-            <span class="btn-text">获取本场商品（码未更新）</span>
+            <span class="btn-text">获取本场商品（码已更新）</span>
         </button>
         <div id="resultArea"></div>
         <div class="copy-success" id="copySuccess">二维码对应链接复制成功！</div>
@@ -45,92 +43,23 @@
     <!-- 核心：时段判断+单倒计时逻辑（按要求重写） -->
     <script src="sjpd.js"></script>
 
-    <!-- 新增：获取GitHub提交时间并展示的逻辑（已全量修复） -->
+    <!-- 页面初始化（修改） -->
     <script>
-        // 格式化时间为 年-月-日 时:分 格式
-        function formatCommitTime(isoTimeStr) {
-            const date = new Date(isoTimeStr);
-            const padZero = (num) => num.toString().padStart(2, '0');
-            const year = date.getFullYear();
-            const month = padZero(date.getMonth() + 1);
-            const day = padZero(date.getDate());
-            const hours = padZero(date.getHours());
-            const minutes = padZero(date.getMinutes());
-            return `${year}/${month}/${day} ${hours}:${minutes}`;
+        function initPage() {
+            // 获取DOM元素
+            generateBtn = document.getElementById('generateBtn');
+            resultArea = document.getElementById('resultArea');
+            copySuccess = document.getElementById('copySuccess');
+            btnText = document.querySelector('.btn-text');
+            countdownLabel = document.getElementById('countdownLabel');
+            countdownValue = document.getElementById('countdownValue');
+            
+            // 初始化倒计时和事件
+            initCountdown();
+            initEventListeners();
         }
 
-        // 核心判断：根据提交时间和当前时间，判断是否更新
-        function checkIfCodeUpdated(commitDate) {
-            const now = new Date();
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            const yesterday = new Date(today);
-            yesterday.setDate(yesterday.getDate() - 1);
-            const commitDay = new Date(commitDate.getFullYear(), commitDate.getMonth(), commitDate.getDate());
-            const commitHour = commitDate.getHours();
-            const currentHour = now.getHours();
-
-            // 提交时间是昨天 → 未更新
-            if (commitDay.getTime() === yesterday.getTime()) return false;
-            // 提交时间是今天
-            if (commitDay.getTime() === today.getTime()) {
-                // 00-17点提交 → 已更新；17-24点提交且当前17-24点 → 已更新
-                return (currentHour < 17 && commitHour < 17) || (currentHour >= 17 && commitHour >= 17);
-            }
-            // 早于昨天 → 未更新
-            return false;
-        }
-
-        // 从GitHub API获取config.js最新提交时间
-        async function getLatestConfigUpdateTime() {
-            try {
-                const apiUrl = 'https://api.github.com/repos/xmzyh/wbdh.github.io/commits/main?path=config.js';
-                const response = await fetch(apiUrl);
-                if (!response.ok) throw new Error(`状态码：${response.status}`);
-                const commitData = await response.json();
-                const commitTimeStr = commitData.commit.committer.date;
-                const commitDate = new Date(commitTimeStr);
-                return {
-                    displayText: `商品码更新时间：${formatCommitTime(commitTimeStr)}`,
-                    isCodeUpdated: checkIfCodeUpdated(commitDate)
-                };
-            } catch (error) {
-                console.error('获取更新时间失败：', error);
-                return {
-                    displayText: '最新更新时间：未知',
-                    isCodeUpdated: false
-                };
-            }
-        }
-
-        // 页面初始化（核心修复：全局变量不重复声明、事件优先执行）
-        async function initPage() {
-            // ********** 关键修复：挂载全局变量，匹配外部脚本an.js/ewm.js的依赖 **********
-            window.generateBtn = document.getElementById('generateBtn');
-            window.resultArea = document.getElementById('resultArea');
-            window.copySuccess = document.getElementById('copySuccess');
-            window.btnText = document.querySelector('.btn-text');
-            window.countdownLabel = document.getElementById('countdownLabel');
-            window.countdownValue = document.getElementById('countdownValue');
-            window.updateTime = document.getElementById('updateTime');
-
-            // 先执行事件初始化（保证按钮点击事件先绑定）
-            if (typeof initEventListeners === 'function') {
-                initEventListeners();
-            }
-            // 再执行倒计时初始化
-            if (typeof initCountdown === 'function') {
-                initCountdown();
-            }
-
-            // 获取更新时间并修改按钮文字
-            const updateInfo = await getLatestConfigUpdateTime();
-            updateTime.textContent = updateInfo.displayText;
-            btnText.textContent = updateInfo.isCodeUpdated 
-                ? '获取本场商品（码已更新）' 
-                : '获取本场商品（码未更新）';
-        }
-
-        // 页面加载完成后立即初始化（无延迟）
+        // 页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', initPage);
     </script>
 </body>
