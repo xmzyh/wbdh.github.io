@@ -128,8 +128,8 @@ h1 {
         .update-time {
             text-align: center;       /* 居中对齐 */
             color: #ffffff;           /* 字体白色 */
-            font-size: 16px;          /* 字体大小（可根据需要调整） */
-            margin: 10px 0 20px 0;    /* 上下间距，让布局更美观 */
+            font-size: 12px;          /* 字体大小（可根据需要调整） */
+            margin:: 5px 0 5px 0;    /* 上下间距，让布局更美观 */
             font-weight: 500;         /* 字体稍粗，提升可读性 */
         }
 /* 当天日期显示样式（适配面板内显示） */
