@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>汪贝付款直链二维码</title>
-<link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <div class="neon-border"></div>
         <div class="light-sweep"></div>
         <h1>汪贝付款直链二维码</h1>
-        <!-- 单一场次倒计时面板（核心修改） -->
+<!-- 单一场次倒计时面板（核心修改） -->
         <div class="countdown-panel">
             <div class="current-date" id="currentDate"></div>
             <span class="countdown-label" id="countdownLabel">距离本场开始剩余</span>
@@ -19,16 +19,16 @@
         </div>
         <button id="generateBtn">
             <span class="btn-loading-icon"></span>
-            <span class="btn-text">获取本场商品（码已更新）</span>
+            <span class="btn-text">商品码更新时间（时间）</span>
         </button>
         <div id="resultArea"></div>
         <div class="copy-success" id="copySuccess">二维码对应链接复制成功！</div>
     </div>
 
-    <!-- 引入二维码生成库 -->
+    <!-- 二维码生成库 -->
     <script src="https://cdn.bootcdn.net/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-    <!-- 1. 全局变量定义 -->
+<!-- 全局变量定义 -->
     <script src="config.js"></script>
 
     <!-- 商品解析模块（保持不变） -->
@@ -43,9 +43,53 @@
     <!-- 核心：时段判断+单倒计时逻辑（按要求重写） -->
     <script src="sjpd.js"></script>
 
-    <!-- 页面初始化（修改） -->
+    <!-- 核心逻辑：获取最新提交时间并修改按钮文字 -->
+
     <script>
-        function initPage() {
+        // 全局变量
+        let generateBtn, resultArea, copySuccess, btnText, countdownLabel, countdownValue;
+
+        // 格式化时间：YYYY-MM-DD HH:MM:SS
+        function formatTime(dateStr) {
+            const date = new Date(dateStr);
+            // 补零函数
+            const pad = n => n.toString().padStart(2, '0');
+            return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+        }
+
+        // 获取config.js最新提交时间
+        async function getLatestConfigUpdateTime() {
+            try {
+                // GitHub API：获取xmzyh/wbdh.github.io仓库main分支下config.js的最新提交
+                const apiUrl = 'https://api.github.com/repos/xmzyh/wbdh.github.io/commits/main?path=config.js';
+                const response = await fetch(apiUrl);
+                
+                if (!response.ok) throw new Error('获取提交信息失败');
+                
+                const commitData = await response.json();
+                // 提取提交时间并格式化
+                const commitTime = commitData.commit.committer.date;
+                return formatTime(commitTime);
+            } catch (error) {
+                console.error('获取更新时间失败：', error);
+                // 失败时使用默认文字
+                return '时间';
+            }
+        }
+
+        // 初始化倒计时（占位，可补充实际逻辑）
+        function initCountdown() {
+            countdownValue.textContent = '00:00:00';
+            // 实际项目中可补充倒计时逻辑
+        }
+
+        // 初始化事件监听（占位）
+        function initEventListeners() {
+            // 可补充按钮点击等事件逻辑
+        }
+
+        // 页面初始化
+        async function initPage() {
             // 获取DOM元素
             generateBtn = document.getElementById('generateBtn');
             resultArea = document.getElementById('resultArea');
@@ -53,6 +97,10 @@
             btnText = document.querySelector('.btn-text');
             countdownLabel = document.getElementById('countdownLabel');
             countdownValue = document.getElementById('countdownValue');
+            
+            // 获取最新更新时间并修改按钮文字
+            const updateTime = await getLatestConfigUpdateTime();
+            btnText.textContent = `商品码更新时间（${updateTime}）`;
             
             // 初始化倒计时和事件
             initCountdown();
