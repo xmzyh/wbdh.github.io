@@ -5,6 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>汪贝付款直链二维码</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* 新增按钮文字换行样式，确保两行文字垂直居中 */
+        .btn-text {
+            display: block;
+            white-space: normal;
+            line-height: 1.2;
+            text-align: center;
+        }
+        /* 可选：调整按钮样式，适配两行文字 */
+        #generateBtn {
+            padding: 12px 20px;
+            white-space: nowrap;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -19,7 +33,11 @@
         </div>
         <button id="generateBtn">
             <span class="btn-loading-icon"></span>
-            <span class="btn-text">获取本场商品（码已更新）</span>
+            <!-- 拆分为两行：第一行固定为“获取直链”，第二行动态更新时间 -->
+            <span class="btn-text">
+                <span class="btn-line1">获取商品二维码</span><br>
+                <span class="btn-line2">二维码更新时间（码已更新）</span>
+            </span>
         </button>
         <div id="resultArea"></div>
         <div class="copy-success" id="copySuccess">二维码对应链接复制成功！</div>
@@ -90,13 +108,13 @@
             generateBtn = document.getElementById('generateBtn');
             resultArea = document.getElementById('resultArea');
             copySuccess = document.getElementById('copySuccess');
-            btnText = document.querySelector('.btn-text');
+            btnLine2 = document.querySelector('.btn-line2'); // 新增：获取第二行文字元素
             countdownLabel = document.getElementById('countdownLabel');
             countdownValue = document.getElementById('countdownValue');
             
-            // 核心修改：获取最新更新时间并替换按钮文字
+            // 核心修改：获取最新更新时间并替换第二行文字
             const latestUpdateTime = await getLatestConfigUpdateTime();
-            btnText.textContent = `获取本场商品（${latestUpdateTime}）`;
+            btnLine2.textContent = `二维码更新时间（${latestUpdateTime}）`;
             
             // 初始化倒计时和事件（原有逻辑）
             initCountdown();
