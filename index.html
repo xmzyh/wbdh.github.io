@@ -36,7 +36,7 @@
             <!-- 拆分为两行：第一行固定为“获取直链”，第二行动态更新时间 -->
             <span class="btn-text">
                 <span class="btn-line1">获取商品二维码</span><br>
-                <span class="btn-line2">二维码更新时间（码已更新）</span>
+                <span class="btn-line2"></span>
             </span>
         </button>
         <div id="resultArea"></div>
@@ -74,9 +74,8 @@
             const day = padZero(date.getDate());
             const hours = padZero(date.getHours());
             const minutes = padZero(date.getMinutes());
-            const seconds = padZero(date.getSeconds());
             
-            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+            return `${year}-${month}-${day} ${hours}:${minutes}`;
         }
 
         // 从GitHub API获取config.js的最新提交时间
@@ -98,7 +97,7 @@
             } catch (error) {
                 // 出错时返回默认文字，不影响页面正常使用
                 console.error('获取config.js最新更新时间失败：', error);
-                return '码已更新';
+                return '';
             }
         }
 
@@ -114,7 +113,7 @@
             
             // 核心修改：获取最新更新时间并替换第二行文字
             const latestUpdateTime = await getLatestConfigUpdateTime();
-            btnLine2.textContent = `二维码更新时间（${latestUpdateTime}）`;
+            btnLine2.textContent = `码更新时间（${latestUpdateTime}）`;
             
             // 初始化倒计时和事件（原有逻辑）
             initCountdown();
