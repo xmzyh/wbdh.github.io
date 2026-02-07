@@ -58,9 +58,8 @@
             const day = padZero(date.getDate());
             const hours = padZero(date.getHours());
             const minutes = padZero(date.getMinutes());
-            const seconds = padZero(date.getSeconds());
             
-            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+            return `${year}/${month}/${day} ${hours}:${minutes}`;
         }
 
         // 从GitHub API获取config.js的最新提交时间
