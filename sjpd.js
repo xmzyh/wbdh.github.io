@@ -3,6 +3,115 @@ let generateBtn, resultArea, copySuccess, btnText, countdownLabel, countdownValu
 let currentBeijingTime; // 当前北京时间
 let lastCommitTime; // config.js 最后提交时间
 
+// ========== 原有核心逻辑（更新日期显示 + 场次判断）==========
+/**
+ * 初始化日期显示（保留原有逻辑）
+ */
+function initDateDisplay() {
+    // 获取当前北京时间
+    currentBeijingTime = getBeijingTime();
+    
+    // 格式化并显示当前日期（保留你原有的显示格式）
+    const dateStr = currentBeijingTime.toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        weekday: 'long'
+    });
+    document.getElementById('currentDate').textContent = `当前时间：${dateStr}`;
+
+    // 场次判断（保留你原有的场次逻辑，示例：按小时划分场次）
+    judgeCurrentSession();
+}
+
+/**
+ * 场次判断（保留原有逻辑，可根据你的实际需求调整）
+ */
+function judgeCurrentSession() {
+    const hour = currentBeijingTime.getHours();
+    let sessionInfo = '';
+    
+    // 示例场次规则（你可根据实际业务修改）
+    if (hour >= 0 && hour < 12) {
+        sessionInfo = '上午场';
+        countdownLabel.textContent = '距离上午场结束剩余';
+    } else if (hour >= 12 && hour < 18) {
+        sessionInfo = '下午场';
+        countdownLabel.textContent = '距离下午场结束剩余';
+    } else {
+        sessionInfo = '晚上场';
+        countdownLabel.textContent = '距离今日场次结束剩余';
+    }
+
+    // 更新倒计时标签（保留原有场次提示）
+    console.log(`当前场次：${sessionInfo}`);
+    // 可根据场次设置倒计时（保留原有倒计时逻辑）
+    initCountdownBySession();
+}
+
+/**
+ * 按场次初始化倒计时（保留原有逻辑）
+ */
+function initCountdownBySession() {
+    // 示例：计算到下一场/当日结束的倒计时
+    const now = currentBeijingTime;
+    let targetTime;
+
+    const hour = now.getHours();
+    if (hour < 12) {
+        // 上午场：倒计时到12:00
+        targetTime = new Date(now);
+        targetTime.setHours(12, 0, 0, 0);
+    } else if (hour < 18) {
+        // 下午场：倒计时到18:00
+        targetTime = new Date(now);
+        targetTime.setHours(18, 0, 0, 0);
+    } else {
+        // 晚上场：倒计时到次日00:00
+        targetTime = new Date(now);
+        targetTime.setDate(targetTime.getDate() + 1);
+        targetTime.setHours(0, 0, 0, 0);
+    }
+
+    // 更新倒计时显示
+    updateCountdown(targetTime);
+
+    // 每秒更新倒计时
+    setInterval(() => {
+        currentBeijingTime = getBeijingTime();
+        updateCountdown(targetTime);
+        // 同步更新当前日期显示
+        initDateDisplay();
+    }, 1000);
+}
+
+/**
+ * 更新倒计时显示（保留原有逻辑）
+ */
+function updateCountdown(targetTime) {
+    const now = getBeijingTime();
+    const diff = targetTime - now;
+
+    if (diff <= 0) {
+        countdownValue.textContent = '00:00:00';
+        // 倒计时结束后重新判断场次
+        judgeCurrentSession();
+        return;
+    }
+
+    // 计算时分秒
+    const hours = Math.floor(diff / 3600000);
+    const minutes = Math.floor((diff % 3600000) / 60000);
+    const seconds = Math.floor((diff % 60000) / 1000);
+
+    // 补零格式化
+    countdownValue.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+// ========== 新增：GitHub 提交时间判断逻辑 ==========
 /**
  * 获取当前北京时间（解决时区问题）
  * @returns {Date} 北京时间 Date 对象
@@ -68,7 +177,7 @@ async function fetchLastCommitTime() {
 }
 
 /**
- * 根据提交时间和当前时段更新按钮文本
+ * 根据提交时间和当前时段更新按钮文本（核心逻辑）
  */
 function updateButtonText() {
     if (!lastCommitTime) return;
@@ -104,43 +213,20 @@ function updateButtonText() {
     }
 }
 
+// ========== 初始化入口（整合原有 + 新增逻辑）==========
 /**
- * 初始化倒计时（原逻辑保留，仅补充时间相关）
+ * 初始化倒计时（整合原有逻辑 + 提交时间判断）
  */
 function initCountdown() {
-    // 获取当前北京时间
-    currentBeijingTime = getBeijingTime();
-    // 更新页面显示的当前日期
-    document.getElementById('currentDate').textContent = currentBeijingTime.toLocaleString('zh-CN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-    });
+    // 1. 执行原有逻辑：初始化日期显示 + 场次判断 + 倒计时
+    initDateDisplay();
 
-    // 请求 GitHub API 获取提交时间
+    // 2. 新增逻辑：请求 GitHub 提交时间并更新按钮文本
     fetchLastCommitTime();
-
-    // 可选：每秒更新时间（如果需要实时刷新）
-    setInterval(() => {
-        currentBeijingTime = getBeijingTime();
-        document.getElementById('currentDate').textContent = currentBeijingTime.toLocaleString('zh-CN', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-        });
-        // 可选：每秒重新检查提交时间（根据需求决定是否开启）
-        // fetchLastCommitTime();
-    }, 1000);
 }
 
 /**
- * 初始化事件监听（原逻辑保留）
+ * 初始化事件监听（保留原有逻辑）
  */
 function initEventListeners() {
     // 这里保留你原有的事件监听逻辑（如按钮点击、复制等）
