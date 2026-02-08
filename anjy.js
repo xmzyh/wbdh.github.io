@@ -103,7 +103,7 @@
                 const commitData = await response.json();
                 // 提取提交时间（ISO格式）并格式化
                 const commitTime = commitData.commit.committer.date;
-                const formattedTime = `更新时间：${formatCommitTime(commitTime)}`;
+                const formattedTime = `${formatCommitTime(commitTime)}`;
                 
                 // 显示更新时间弹窗
                 document.getElementById('updateTimeMessage').textContent = formattedTime;
