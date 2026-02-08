@@ -1,4 +1,15 @@
-// 格式化时间为 年-月-日 时:分:秒 格式
+        // 弹窗控制函数
+        function showModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.add('show');
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.remove('show');
+        }
+
+        // 格式化时间为 年-月-日 时:分:秒 格式
         function formatCommitTime(isoTimeStr) {
             const date = new Date(isoTimeStr);
             // 补零函数，确保数字为两位数
@@ -58,13 +69,12 @@
         // 禁用按钮并设置定时解禁
         function disableButtonUntil(targetTime, tipText) {
             const generateBtn = document.getElementById('generateBtn');
-            const disabledTip = document.getElementById('disabledTip');
             
             // 禁用按钮
             generateBtn.disabled = true;
-            // 显示提示信息
-            disabledTip.textContent = tipText;
-            disabledTip.style.display = 'block';
+            // 显示禁用提示弹窗
+            document.getElementById('disabledTipMessage').textContent = tipText;
+            showModal('disabledTipModal');
             
             // 计算剩余时间，设置定时检查
             const checkInterval = setInterval(() => {
@@ -72,7 +82,6 @@
                 if (now >= targetTime) {
                     // 解禁按钮
                     generateBtn.disabled = false;
-                    disabledTip.style.display = 'none';
                     // 清除定时器
                     clearInterval(checkInterval);
                 }
@@ -94,7 +103,11 @@
                 const commitData = await response.json();
                 // 提取提交时间（ISO格式）并格式化
                 const commitTime = commitData.commit.committer.date;
-                const formattedTime = `商品码更新时间：${formatCommitTime(commitTime)}`;
+                const formattedTime = `更新时间：${formatCommitTime(commitTime)}`;
+                
+                // 显示更新时间弹窗
+                document.getElementById('updateTimeMessage').textContent = formattedTime;
+                showModal('updateTimeModal');
                 
                 // 检查是否需要禁用按钮
                 const { disableUntil, tipText } = checkButtonDisableStatus(commitTime);
@@ -106,7 +119,11 @@
             } catch (error) {
                 // 出错时返回默认文字，不影响页面正常使用
                 console.error('获取config.js最新更新时间失败：', error);
-                return '最新更新时间：未知';
+                const defaultText = '最新更新时间：未知';
+                // 显示更新时间弹窗（错误信息）
+                document.getElementById('updateTimeMessage').textContent = defaultText;
+                showModal('updateTimeModal');
+                return defaultText;
             }
         }
 
@@ -119,12 +136,9 @@
             btnText = document.querySelector('.btn-text');
             countdownLabel = document.getElementById('countdownLabel');
             countdownValue = document.getElementById('countdownValue');
-            // 新增：获取展示更新时间的DOM元素
-            updateTime = document.getElementById('updateTime');
             
-            // 核心修改：获取最新更新时间并渲染到标题下方的元素中
+            // 核心修改：获取最新更新时间并显示弹窗
             const latestUpdateTime = await getLatestConfigUpdateTime();
-            updateTime.textContent = latestUpdateTime;
             
             // 初始化倒计时和事件（原有逻辑）
             initCountdown();
@@ -132,4 +146,4 @@
         }
 
         // 页面加载完成后初始化
-        document.addEventListener('DOMContentLoaded', initPage);
+        document.addEventListener('DOMContentLoaded', initPage); 
