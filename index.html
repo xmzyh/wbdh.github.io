@@ -5,6 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>汪贝付款直链二维码</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* 新增禁用按钮样式 */
+        #generateBtn:disabled {
+            background-color: #666;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        .disabled-tip {
+            color: #ff4444;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -13,6 +26,8 @@
         <h1>汪贝付款直链二维码</h1>
         <!-- 新增：用于展示最新更新时间的元素 -->
         <div class="update-time" id="updateTime"></div>
+        <!-- 新增：禁用提示 -->
+        <div class="disabled-tip" id="disabledTip" style="display: none;"></div>
         <!-- 单一场次倒计时面板（核心修改） -->
         <div class="countdown-panel">
             <div class="current-date" id="currentDate"></div>
@@ -62,6 +77,72 @@
             return `${year}/${month}/${day} ${hours}:${minutes}`;
         }
 
+        // 判断是否需要禁用按钮的核心函数
+        function checkButtonDisableStatus(commitTime) {
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const commitDate = new Date(commitTime);
+            
+            // 定义时间节点
+            const time14 = new Date(today);
+            time14.setHours(14, 0, 0, 0); // 14:00
+            
+            const time17 = new Date(today);
+            time17.setHours(17, 0, 0, 0); // 17:00
+            
+            const time20 = new Date(today);
+            time20.setHours(20, 0, 0, 0); // 20:00
+            
+            const time24 = new Date(today);
+            time24.setHours(24, 0, 0, 0); // 24:00
+            
+            let disableUntil = null;
+            let tipText = '';
+
+            // 情况1：当前时间在00:00-14:00之间
+            if (now >= today && now < time14) {
+                // 检查更新时间是否在今天00:00-14:00之间
+                if (!(commitDate >= today && commitDate < time14)) {
+                    disableUntil = time17;
+                    tipText = `当前时段(00:00-14:00)商品码未更新，按钮将在17:00自动启用`;
+                }
+            }
+            // 情况2：当前时间在17:00-20:00之间
+            else if (now >= time17 && now < time20) {
+                // 检查更新时间是否在今天17:00-20:00之间
+                if (!(commitDate >= time17 && commitDate < time20)) {
+                    disableUntil = time24;
+                    tipText = `当前时段(17:00-20:00)商品码未更新，按钮将在24:00自动启用`;
+                }
+            }
+
+            return { disableUntil, tipText };
+        }
+
+        // 禁用按钮并设置定时解禁
+        function disableButtonUntil(targetTime, tipText) {
+            const generateBtn = document.getElementById('generateBtn');
+            const disabledTip = document.getElementById('disabledTip');
+            
+            // 禁用按钮
+            generateBtn.disabled = true;
+            // 显示提示信息
+            disabledTip.textContent = tipText;
+            disabledTip.style.display = 'block';
+            
+            // 计算剩余时间，设置定时检查
+            const checkInterval = setInterval(() => {
+                const now = new Date();
+                if (now >= targetTime) {
+                    // 解禁按钮
+                    generateBtn.disabled = false;
+                    disabledTip.style.display = 'none';
+                    // 清除定时器
+                    clearInterval(checkInterval);
+                }
+            }, 1000); // 每秒检查一次
+        }
+
         // 从GitHub API获取config.js的最新提交时间
         async function getLatestConfigUpdateTime() {
             try {
@@ -77,7 +158,15 @@
                 const commitData = await response.json();
                 // 提取提交时间（ISO格式）并格式化
                 const commitTime = commitData.commit.committer.date;
-                return `商品码更新时间：${formatCommitTime(commitTime)}`;
+                const formattedTime = `商品码更新时间：${formatCommitTime(commitTime)}`;
+                
+                // 检查是否需要禁用按钮
+                const { disableUntil, tipText } = checkButtonDisableStatus(commitTime);
+                if (disableUntil) {
+                    disableButtonUntil(disableUntil, tipText);
+                }
+                
+                return formattedTime;
             } catch (error) {
                 // 出错时返回默认文字，不影响页面正常使用
                 console.error('获取config.js最新更新时间失败：', error);
