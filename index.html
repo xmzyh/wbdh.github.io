@@ -5,76 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>汪贝付款直链二维码</title>
     <link rel="stylesheet" href="styles.css">
-    <style>
-        /* 弹窗基础样式 */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-        
-        .modal.show {
-            opacity: 1;
-            visibility: visible;
-        }
-        
-        .modal-content {
-            background-color: white;
-            padding: 20px 30px;
-            border-radius: 8px;
-            max-width: 400px;
-            width: 90%;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            text-align: center;
-        }
-        
-        .modal-title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: #333;
-        }
-        
-        .modal-message {
-            font-size: 16px;
-            color: #666;
-            margin-bottom: 20px;
-        }
-        
-        .modal-close {
-            padding: 8px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        
-        .modal-close:hover {
-            background-color: #0056b3;
-        }
-        
-        /* 禁用提示弹窗额外样式 */
-        .disabled-modal .modal-title {
-            color: #dc3545;
-        }
-        
-        /* 更新时间弹窗额外样式 */
-        .update-modal .modal-title {
-            color: #28a745;
-        }
-    </style>
 </head>
 <body>
     <div class="container">
@@ -238,7 +168,7 @@
                 const commitData = await response.json();
                 // 提取提交时间（ISO格式）并格式化
                 const commitTime = commitData.commit.committer.date;
-                const formattedTime = `商品码更新时间：${formatCommitTime(commitTime)}`;
+                const formattedTime = `更新时间：${formatCommitTime(commitTime)}`;
                 
                 // 显示更新时间弹窗
                 document.getElementById('updateTimeMessage').textContent = formattedTime;
