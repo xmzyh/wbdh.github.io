@@ -5,16 +5,82 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>汪贝付款直链二维码</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* 弹窗基础样式 */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 20px 30px;
+            border-radius: 8px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            text-align: center;
+        }
+        
+        .modal-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .modal-message {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .modal-close {
+            padding: 8px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .modal-close:hover {
+            background-color: #0056b3;
+        }
+        
+        /* 禁用提示弹窗额外样式 */
+        .disabled-modal .modal-title {
+            color: #dc3545;
+        }
+        
+        /* 更新时间弹窗额外样式 */
+        .update-modal .modal-title {
+            color: #28a745;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <div class="neon-border"></div>
         <div class="light-sweep"></div>
         <h1>汪贝付款直链二维码</h1>
-        <!-- 新增：用于展示最新更新时间的元素 -->
-        <div class="update-time" id="updateTime"></div>
-        <!-- 新增：禁用提示 -->
-        <div class="disabled-tip" id="disabledTip" style="display: none;"></div>
         <!-- 单一场次倒计时面板（核心修改） -->
         <div class="countdown-panel">
             <div class="current-date" id="currentDate"></div>
@@ -27,6 +93,24 @@
         </button>
         <div id="resultArea"></div>
         <div class="copy-success" id="copySuccess">二维码对应链接复制成功！</div>
+    </div>
+
+    <!-- 更新时间弹窗 -->
+    <div class="modal update-modal" id="updateTimeModal">
+        <div class="modal-content">
+            <div class="modal-title">商品码更新信息</div>
+            <div class="modal-message" id="updateTimeMessage"></div>
+            <button class="modal-close" onclick="closeModal('updateTimeModal')">确定</button>
+        </div>
+    </div>
+
+    <!-- 禁用提示弹窗 -->
+    <div class="modal disabled-modal" id="disabledTipModal">
+        <div class="modal-content">
+            <div class="modal-title">功能禁用提示</div>
+            <div class="modal-message" id="disabledTipMessage"></div>
+            <button class="modal-close" onclick="closeModal('disabledTipModal')">确定</button>
+        </div>
     </div>
 
     <!-- 引入二维码生成库 -->
@@ -47,6 +131,157 @@
     <!-- 核心：时段判断+单倒计时逻辑（按要求重写） -->
     <script src="sjpd.js"></script>
 
-    <!-- 新增：获取GitHub提交时间并展示的逻辑 -->
-    <script src="anjy.js"></script></body>
+    <!-- 新增：弹窗控制和GitHub提交时间逻辑 -->
+    <script> 
+        // 弹窗控制函数
+        function showModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.add('show');
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.remove('show');
+        }
+
+        // 格式化时间为 年-月-日 时:分:秒 格式
+        function formatCommitTime(isoTimeStr) {
+            const date = new Date(isoTimeStr);
+            // 补零函数，确保数字为两位数
+            const padZero = (num) => num.toString().padStart(2, '0');
+            
+            const year = date.getFullYear();
+            const month = padZero(date.getMonth() + 1); // 月份从0开始，需+1
+            const day = padZero(date.getDate());
+            const hours = padZero(date.getHours());
+            const minutes = padZero(date.getMinutes());
+            
+            return `${year}/${month}/${day} ${hours}:${minutes}`;
+        }
+
+        // 判断是否需要禁用按钮的核心函数
+        function checkButtonDisableStatus(commitTime) {
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const commitDate = new Date(commitTime);
+            
+            // 定义时间节点
+            const time14 = new Date(today);
+            time14.setHours(14, 0, 0, 0); // 14:00
+            
+            const time17 = new Date(today);
+            time17.setHours(17, 0, 0, 0); // 17:00
+            
+            const time20 = new Date(today);
+            time20.setHours(20, 0, 0, 0); // 20:00
+            
+            const time24 = new Date(today);
+            time24.setHours(24, 0, 0, 0); // 24:00
+            
+            let disableUntil = null;
+            let tipText = '';
+
+            // 情况1：当前时间在00:00-14:00之间
+            if (now >= today && now < time14) {
+                // 检查更新时间是否在今天00:00-14:00之间
+                if (!(commitDate >= today && commitDate < time14)) {
+                    disableUntil = time17;
+                    tipText = `当前时段(00:00-14:00)商品码未更新，按钮将在17:00自动启用`;
+                }
+            }
+            // 情况2：当前时间在17:00-20:00之间
+            else if (now >= time17 && now < time20) {
+                // 检查更新时间是否在今天17:00-20:00之间
+                if (!(commitDate >= time17 && commitDate < time20)) {
+                    disableUntil = time24;
+                    tipText = `当前时段(17:00-20:00)商品码未更新，按钮将在24:00自动启用`;
+                }
+            }
+
+            return { disableUntil, tipText };
+        }
+
+        // 禁用按钮并设置定时解禁
+        function disableButtonUntil(targetTime, tipText) {
+            const generateBtn = document.getElementById('generateBtn');
+            
+            // 禁用按钮
+            generateBtn.disabled = true;
+            // 显示禁用提示弹窗
+            document.getElementById('disabledTipMessage').textContent = tipText;
+            showModal('disabledTipModal');
+            
+            // 计算剩余时间，设置定时检查
+            const checkInterval = setInterval(() => {
+                const now = new Date();
+                if (now >= targetTime) {
+                    // 解禁按钮
+                    generateBtn.disabled = false;
+                    // 清除定时器
+                    clearInterval(checkInterval);
+                }
+            }, 1000); // 每秒检查一次
+        }
+
+        // 从GitHub API获取config.js的最新提交时间
+        async function getLatestConfigUpdateTime() {
+            try {
+                // GitHub API地址：获取指定仓库指定文件的最新提交信息
+                const apiUrl = 'https://api.github.com/repos/xmzyh/wbdh.github.io/commits/main?path=config.js';
+                const response = await fetch(apiUrl);
+
+                // 处理API请求失败的情况
+                if (!response.ok) {
+                    throw new Error(`请求失败，状态码：${response.status}`);
+                }
+
+                const commitData = await response.json();
+                // 提取提交时间（ISO格式）并格式化
+                const commitTime = commitData.commit.committer.date;
+                const formattedTime = `商品码更新时间：${formatCommitTime(commitTime)}`;
+                
+                // 显示更新时间弹窗
+                document.getElementById('updateTimeMessage').textContent = formattedTime;
+                showModal('updateTimeModal');
+                
+                // 检查是否需要禁用按钮
+                const { disableUntil, tipText } = checkButtonDisableStatus(commitTime);
+                if (disableUntil) {
+                    disableButtonUntil(disableUntil, tipText);
+                }
+                
+                return formattedTime;
+            } catch (error) {
+                // 出错时返回默认文字，不影响页面正常使用
+                console.error('获取config.js最新更新时间失败：', error);
+                const defaultText = '最新更新时间：未知';
+                // 显示更新时间弹窗（错误信息）
+                document.getElementById('updateTimeMessage').textContent = defaultText;
+                showModal('updateTimeModal');
+                return defaultText;
+            }
+        }
+
+        // 页面初始化（修改并整合原有逻辑）
+        async function initPage() {
+            // 获取DOM元素
+            generateBtn = document.getElementById('generateBtn');
+            resultArea = document.getElementById('resultArea');
+            copySuccess = document.getElementById('copySuccess');
+            btnText = document.querySelector('.btn-text');
+            countdownLabel = document.getElementById('countdownLabel');
+            countdownValue = document.getElementById('countdownValue');
+            
+            // 核心修改：获取最新更新时间并显示弹窗
+            const latestUpdateTime = await getLatestConfigUpdateTime();
+            
+            // 初始化倒计时和事件（原有逻辑）
+            initCountdown();
+            initEventListeners();
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', initPage); 
+    </script>
+</body>
 </html>
