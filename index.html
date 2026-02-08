@@ -98,7 +98,7 @@
     <!-- 更新时间弹窗 -->
     <div class="modal update-modal" id="updateTimeModal">
         <div class="modal-content">
-            <div class="modal-title">商品码更新信息</div>
+            <div class="modal-title">商品码更新提示</div>
             <div class="modal-message" id="updateTimeMessage"></div>
             <button class="modal-close" onclick="closeModal('updateTimeModal')">确定</button>
         </div>
@@ -107,7 +107,7 @@
     <!-- 禁用提示弹窗 -->
     <div class="modal disabled-modal" id="disabledTipModal">
         <div class="modal-content">
-            <div class="modal-title">功能禁用提示</div>
+            <div class="modal-title">获取商品按钮禁用提示</div>
             <div class="modal-message" id="disabledTipMessage"></div>
             <button class="modal-close" onclick="closeModal('disabledTipModal')">确定</button>
         </div>
@@ -186,7 +186,7 @@
                 // 检查更新时间是否在今天00:00-14:00之间
                 if (!(commitDate >= today && commitDate < time14)) {
                     disableUntil = time17;
-                    tipText = `当前时段(00:00-14:00)商品码未更新，按钮将在17:00自动启用`;
+                    tipText = `14:00场商品码未更新，获取商品按钮已禁用`;
                 }
             }
             // 情况2：当前时间在17:00-20:00之间
@@ -194,7 +194,7 @@
                 // 检查更新时间是否在今天17:00-20:00之间
                 if (!(commitDate >= time17 && commitDate < time20)) {
                     disableUntil = time24;
-                    tipText = `当前时段(17:00-20:00)商品码未更新，按钮将在24:00自动启用`;
+                    tipText = `20:00场商品码未更新，获取商品按钮已禁用`;
                 }
             }
 
