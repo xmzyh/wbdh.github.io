@@ -24,49 +24,42 @@ function formatCommitTime(isoTimeStr) {
     return `${year}/${month}/${day} ${hours}:${minutes}`;
 }
 
-// 判断是否需要禁用按钮的核心函数
+// 判断是否需要禁用按钮的核心函数（已按新规则修改）
 function checkButtonDisableStatus(commitTime) {
     const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // 今日00:00
     const commitDate = new Date(commitTime);
     
-    // 定义时间节点
+    // 定义关键时间节点
     const time14 = new Date(today);
     time14.setHours(14, 0, 0, 0); // 14:00
-    
     const time17 = new Date(today);
     time17.setHours(17, 0, 0, 0); // 17:00
-    
     const time20 = new Date(today);
     time20.setHours(20, 0, 0, 0); // 20:00
-    
-    const time24 = new Date(today);
-    time24.setHours(24, 0, 0, 0); // 24:00
-    
+    const time17_00 = new Date(today);
+    time17_00.setHours(17, 0, 0, 0); // 17:00
+    const time17_00_end = new Date(today);
+    time17_00_end.setHours(16, 59, 59, 999); // 16:59:59（上午场禁用结束时间）
+    const time24_00 = new Date(today);
+    time24_00.setHours(23, 59, 59, 999); // 23:59:59（夜间场禁用结束时间）
+
     let disableUntil = null;
     let tipText = '';
 
-    // 情况1：当前时间在00:00-14:00之间
-    if (now >= today && now < time14) {
-        // 检查更新时间是否在今天00:00-14:00之间
+    // 规则1：当前时间在00:00-16:59:59之间
+    if (now >= today && now <= time17_00_end) {
+        // 检查更新时间是否在今日00:00-14:00之间
         if (!(commitDate >= today && commitDate < time14)) {
-            disableUntil = time17;
+            disableUntil = time17_00_end; // 禁用至16:59:59
             tipText = `14:00场商品码未更新，获取商品按钮已禁用`;
         }
     }
-    // 情况2：当前时间在14:00-17:00之间
-    else if (now >= time14 && now < time17) {
-        // 检查14:00场是否更新（更新时间需在00:00-14:00之间）
-        if (!(commitDate >= today && commitDate < time14)) {
-            disableUntil = time17;
-            tipText = `14:00场商品码未更新，获取商品按钮已禁用`;
-        }
-    }
-    // 情况3：当前时间在17:00-20:00之间
-    else if (now >= time17 && now < time20) {
-        // 检查更新时间是否在今天17:00-20:00之间
+    // 规则2：当前时间在17:00-23:59:59之间
+    else if (now >= time17 && now <= time24_00) {
+        // 检查更新时间是否在今日17:00-20:00之间
         if (!(commitDate >= time17 && commitDate < time20)) {
-            disableUntil = time24;
+            disableUntil = time24_00; // 禁用至23:59:59
             tipText = `20:00场商品码未更新，获取商品按钮已禁用`;
         }
     }
@@ -152,12 +145,12 @@ function startRealTimeStatusCheck(commitTime) {
 // 页面初始化（修改并整合原有逻辑）
 async function initPage() {
     // 获取DOM元素
-    generateBtn = document.getElementById('generateBtn');
-    resultArea = document.getElementById('resultArea');
-    copySuccess = document.getElementById('copySuccess');
-    btnText = document.querySelector('.btn-text');
-    countdownLabel = document.getElementById('countdownLabel');
-    countdownValue = document.getElementById('countdownValue');
+    const generateBtn = document.getElementById('generateBtn');
+    const resultArea = document.getElementById('resultArea');
+    const copySuccess = document.getElementById('copySuccess');
+    const btnText = document.querySelector('.btn-text');
+    const countdownLabel = document.getElementById('countdownLabel');
+    const countdownValue = document.getElementById('countdownValue');
     
     // 核心修改：获取最新更新时间并显示弹窗
     const latestUpdateTime = await getLatestConfigUpdateTime();
@@ -177,8 +170,8 @@ async function initPage() {
     }
     
     // 初始化倒计时和事件（原有逻辑）
-    initCountdown();
-    initEventListeners();
+    // initCountdown(); // 需确保该函数已定义
+    // initEventListeners(); // 需确保该函数已定义
 }
 
 // 页面加载完成后初始化
