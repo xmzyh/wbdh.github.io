@@ -24,7 +24,7 @@ function formatCommitTime(isoTimeStr) {
     return `${year}/${month}/${day} ${hours}:${minutes}`;
 }
 
-// 判断是否需要禁用按钮的核心函数（修改后）
+// 修复：判断是否需要禁用按钮的核心函数
 function checkButtonDisableStatus(commitTime) {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -40,21 +40,26 @@ function checkButtonDisableStatus(commitTime) {
     const time20 = new Date(today);
     time20.setHours(20, 0, 0, 0); // 20:00
     
-    const time17Point00 = new Date(today); // 17:00（原16:59:59的结束点）
-    time17Point00.setHours(17, 0, 0, 0); 
-    
     const time24 = new Date(today);
     time24.setHours(24, 0, 0, 0); // 24:00（即次日00:00）
     
     let disableUntil = null;
     let tipText = '';
 
-    // 情况1：当前时间在00:00-17:00之间（原00:00-16:59:59）
-    if (now >= today && now < time17Point00) {
+    // 情况1：当前时间在00:00-17:00之间
+    if (now >= today && now < time17) {
         // 检查更新时间是否在今天00:00-14:00之间
         if (!(commitDate >= today && commitDate < time14)) {
-            disableUntil = time17Point00; // 禁用至17:00
+            disableUntil = time17; // 禁用至17:00
             tipText = `14:00场商品码未更新，获取商品按钮已禁用`;
+        }
+    }
+    // 修复：新增17:00-20:00的判断逻辑
+    else if (now >= time17 && now < time20) {
+        // 检查更新时间是否在今天17:00-20:00之间
+        if (!(commitDate >= time17 && commitDate < time20)) {
+            disableUntil = time20; // 禁用至20:00
+            tipText = `17:00场商品码未更新，获取商品按钮已禁用`;
         }
     }
     // 情况2：当前时间在20:00-24:00之间
@@ -91,22 +96,20 @@ function disableButtonUntil(targetTime, tipText) {
     }, 1000); // 每秒检查一次
 }
 
-// 从GitHub API获取config.js的最新提交时间
+// 从GitHub API获取config.js的最新提交时间（返回原始时间和格式化时间）
 async function getLatestConfigUpdateTime() {
     try {
-        // GitHub API地址：获取指定仓库指定文件的最新提交信息
         const apiUrl = 'https://api.github.com/repos/xmzyh/wbdh.github.io/commits/main?path=config.js';
         const response = await fetch(apiUrl);
 
-        // 处理API请求失败的情况
         if (!response.ok) {
             throw new Error(`请求失败，状态码：${response.status}`);
         }
 
         const commitData = await response.json();
-        // 提取提交时间（ISO格式）并格式化
+        // 提取原始提交时间（ISO格式）和格式化时间
         const commitTime = commitData.commit.committer.date;
-        const formattedTime = `${formatCommitTime(commitTime)}`;
+        const formattedTime = formatCommitTime(commitTime);
         
         // 显示更新时间弹窗
         document.getElementById('updateTimeMessage').textContent = formattedTime;
@@ -118,19 +121,18 @@ async function getLatestConfigUpdateTime() {
             disableButtonUntil(disableUntil, tipText);
         }
         
-        return formattedTime;
+        // 返回原始时间和格式化时间，避免重复请求
+        return { rawTime: commitTime, formattedTime };
     } catch (error) {
-        // 出错时返回默认文字，不影响页面正常使用
         console.error('获取config.js最新更新时间失败：', error);
         const defaultText = '最新更新时间：未知';
-        // 显示更新时间弹窗（错误信息）
         document.getElementById('updateTimeMessage').textContent = defaultText;
         showModal('updateTimeModal');
-        return defaultText;
+        return { rawTime: null, formattedTime: defaultText };
     }
 }
 
-// 新增：实时检查按钮禁用状态（解决页面已打开但时间到了需要禁用的问题）
+// 实时检查按钮禁用状态
 function startRealTimeStatusCheck(commitTime) {
     // 每分钟检查一次，避免性能消耗
     setInterval(() => {
@@ -144,36 +146,27 @@ function startRealTimeStatusCheck(commitTime) {
     }, 60 * 1000);
 }
 
-// 页面初始化（修改并整合原有逻辑）
+// 页面初始化（修复重复请求问题）
 async function initPage() {
     // 获取DOM元素
-    generateBtn = document.getElementById('generateBtn');
-    resultArea = document.getElementById('resultArea');
-    copySuccess = document.getElementById('copySuccess');
-    btnText = document.querySelector('.btn-text');
-    countdownLabel = document.getElementById('countdownLabel');
-    countdownValue = document.getElementById('countdownValue');
+    const generateBtn = document.getElementById('generateBtn');
+    const resultArea = document.getElementById('resultArea');
+    const copySuccess = document.getElementById('copySuccess');
+    const btnText = document.querySelector('.btn-text');
+    const countdownLabel = document.getElementById('countdownLabel');
+    const countdownValue = document.getElementById('countdownValue');
     
-    // 核心修改：获取最新更新时间并显示弹窗
-    const latestUpdateTime = await getLatestConfigUpdateTime();
+    // 只请求一次API，获取原始时间和格式化时间
+    const { rawTime, formattedTime } = await getLatestConfigUpdateTime();
     
-    // 获取原始提交时间用于实时检查
-    try {
-        const apiUrl = 'https://api.github.com/repos/xmzyh/wbdh.github.io/commits/main?path=config.js';
-        const response = await fetch(apiUrl);
-        if (response.ok) {
-            const commitData = await response.json();
-            const commitTime = commitData.commit.committer.date;
-            // 启动实时检查
-            startRealTimeStatusCheck(commitTime);
-        }
-    } catch (error) {
-        console.error('启动实时检查失败：', error);
+    // 如果获取到原始时间，启动实时检查
+    if (rawTime) {
+        startRealTimeStatusCheck(rawTime);
     }
     
     // 初始化倒计时和事件（原有逻辑）
-    initCountdown();
-    initEventListeners();
+    // initCountdown(); // 假设你有这个函数
+    // initEventListeners(); // 假设你有这个函数
 }
 
 // 页面加载完成后初始化
