@@ -24,7 +24,7 @@ function formatCommitTime(isoTimeStr) {
     return `${year}/${month}/${day} ${hours}:${minutes}`;
 }
 
-// 判断是否需要禁用按钮的核心函数
+// 判断是否需要禁用按钮的核心函数（修改后）
 function checkButtonDisableStatus(commitTime) {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -40,33 +40,28 @@ function checkButtonDisableStatus(commitTime) {
     const time20 = new Date(today);
     time20.setHours(20, 0, 0, 0); // 20:00
     
+    const time17Point00 = new Date(today); // 17:00（原16:59:59的结束点）
+    time17Point00.setHours(17, 0, 0, 0); 
+    
     const time24 = new Date(today);
-    time24.setHours(24, 0, 0, 0); // 24:00
+    time24.setHours(24, 0, 0, 0); // 24:00（即次日00:00）
     
     let disableUntil = null;
     let tipText = '';
 
-    // 情况1：当前时间在00:00-14:00之间
-    if (now >= today && now < time14) {
+    // 情况1：当前时间在00:00-17:00之间（原00:00-16:59:59）
+    if (now >= today && now < time17Point00) {
         // 检查更新时间是否在今天00:00-14:00之间
         if (!(commitDate >= today && commitDate < time14)) {
-            disableUntil = time17;
+            disableUntil = time17Point00; // 禁用至17:00
             tipText = `14:00场商品码未更新，获取商品按钮已禁用`;
         }
     }
-    // 情况2：当前时间在14:00-17:00之间
-    else if (now >= time14 && now < time17) {
-        // 检查14:00场是否更新（更新时间需在00:00-14:00之间）
-        if (!(commitDate >= today && commitDate < time14)) {
-            disableUntil = time17;
-            tipText = `14:00场商品码未更新，获取商品按钮已禁用`;
-        }
-    }
-    // 情况3：当前时间在17:00-20:00之间
-    else if (now >= time17 && now < time20) {
+    // 情况2：当前时间在20:00-24:00之间
+    else if (now >= time20 && now < time24) {
         // 检查更新时间是否在今天17:00-20:00之间
         if (!(commitDate >= time17 && commitDate < time20)) {
-            disableUntil = time24;
+            disableUntil = time24; // 禁用至24:00
             tipText = `20:00场商品码未更新，获取商品按钮已禁用`;
         }
     }
